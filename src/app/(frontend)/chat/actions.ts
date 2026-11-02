@@ -213,7 +213,7 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
   return { ok: false, error: 'Unknown option', messages: [], ctx }
 }
 
-async function flag(leadId: string | undefined, reason: string) {
+async function flag(leadId: string | undefined, reason: string, pendingBuyerText?: string) {
   if (!leadId) return
   const payload = await getPayloadClient()
   const lead = await payload.findByID({ collection: 'leads', id: leadId, depth: 0, overrideAccess: true }).catch(() => null)
@@ -225,7 +225,7 @@ async function flag(leadId: string | undefined, reason: string) {
     collection: 'chat-messages', where: { lead: { equals: leadId } },
     depth: 0, limit: 1000, sort: 'createdAt', pagination: false, overrideAccess: true,
   })
-  const transcriptText = transcript.docs.map((m) => `${m.role === 'buyer' ? 'Buyer' : 'HOMIQ'}: ${m.text}`).join('\\n')
+  const transcriptText = [...transcript.docs.map((m) => `${m.role === 'buyer' ? 'Buyer' : 'HOMIQ'}: ${m.text}`), ...(pendingBuyerText ? [`Buyer: ${pendingBuyerText}`] : [])].join('\\n')
   const summary = [
     `Lead: ${lead.name}; source: ${lead.source}; language: ${lead.language}.`,
     `Project: ${lead.project || 'not selected'}; preference: ${lead.bhk ? lead.bhk + ' BHK' : 'not stated'}; budget: ${lead.budgetMinLakh != null ? `₹${lead.budgetMinLakh}L to ₹${lead.budgetMaxLakh}L` : 'not stated'}.`,
@@ -264,13 +264,13 @@ export async function askQuestion(input: { ctx: Ctx; text: string }): Promise<Re
   const text = clean(input.text, 400)
   if (!text) return { ok: false, error: 'Empty', messages: [], ctx }
   if (DISCOUNT_RE.test(text)) {
-    await flag(ctx.leadId, `Asked about discount or final price: "${text.slice(0, 120)}"`)
+    await flag(ctx.leadId, `Asked about discount or final price: "${text.slice(0, 120)}"`, text)
     return reply(ctx, { messages: [t(lang, 'noDiscount')], chips: ctx.projectId ? nextChips(lang, true) : undefined }, text)
   }
   const topic = detectTopic(text)
   const ans = topic ? await answerFact(ctx.projectId, topic, lang) : null
   if (ans) return reply(ctx, { messages: [ans], chips: nextChips(lang, true) }, text)
-  await flag(ctx.leadId, `Unanswered question: "${text.slice(0, 120)}"`)
+  await flag(ctx.leadId, `Unanswered question: "${text.slice(0, 120)}"`, text)
   let execName = ''
   if (ctx.leadId) {
     const payload = await getPayloadClient()
