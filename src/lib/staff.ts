@@ -7,14 +7,12 @@ export async function getStaff() {
 }
 
 export const IST = 'Asia/Kolkata'
-export const fmtDateTime = (iso: string | Date) =>
-  new Intl.DateTimeFormat('en-IN', { timeZone: IST, weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(iso))
-export const fmtDate = (iso: string | Date) =>
-  new Intl.DateTimeFormat('en-IN', { timeZone: IST, day: 'numeric', month: 'short' }).format(new Date(iso))
-export const fmtDay = (iso: string | Date) =>
-  new Intl.DateTimeFormat('en-IN', { timeZone: IST, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(iso))
-export const fmtTime = (iso: string | Date) =>
-  new Intl.DateTimeFormat('en-IN', { timeZone: IST, hour: 'numeric', minute: '2-digit' }).format(new Date(iso))
+const safeDate = (value: string | Date) => { const d = new Date(value); return Number.isNaN(d.getTime()) ? null : d }
+const formatDate = (value: string | Date, options: Intl.DateTimeFormatOptions) => { const d = safeDate(value); return d ? new Intl.DateTimeFormat('en-IN', { timeZone: IST, ...options }).format(d) : 'Date to be confirmed' }
+export const fmtDateTime = (iso: string | Date) => formatDate(iso, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
+export const fmtDate = (iso: string | Date) => formatDate(iso, { day: 'numeric', month: 'short' })
+export const fmtDay = (iso: string | Date) => formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })
+export const fmtTime = (iso: string | Date) => formatDate(iso, { hour: 'numeric', minute: '2-digit' })
 
 export const SOURCE_LABEL: Record<string, string> = {
   portal_99acres: '99acres', portal_magicbricks: 'MagicBricks', social_ads: 'Social ads', website: 'Website', hoarding: 'Hoarding',

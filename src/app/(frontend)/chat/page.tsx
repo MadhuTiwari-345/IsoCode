@@ -2,7 +2,7 @@ import Link from 'next/link'
 import ChatClient from '@/components/ChatClient'
 import SiteHeader from '@/components/SiteHeader'
 
-export const metadata = { title: 'Chat with us | Company A' }
+export const metadata = { title: 'Chat with HOMIQ | Thoughtful Homes in Ahmedabad' }
 
 export default function ChatPage() {
   return (

@@ -46,20 +46,20 @@ export default async function Dashboard() {
   const waiting = leads.filter((l) => l.firstResponseMinutes == null).sort((a, b) => +new Date(a.enquiredAt) - +new Date(b.enquiredAt)).slice(0, 6)
   return (
     <div>
-      <p className="text-xs uppercase tracking-[0.2em] text-brass">Overview</p>
-      <h1 className="mt-2 font-serif text-4xl tracking-tight">Lead performance</h1>
+      <p className="text-xs uppercase tracking-[0.2em] text-moss">Sales workspace</p>
+      <h1 className="mt-2 font-serif text-5xl tracking-tight">Lead performance</h1>
       <p className="mt-2 max-w-xl text-sm text-mute">Based on {leads.length} unique leads. Duplicate enquiries are excluded from every figure.</p>
-      <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {kpis.map(([k, v, n]) => (
-          <div key={k} className="bg-card p-6">
+          <div key={k} className="rounded-2xl border border-line bg-white p-5 shadow-[0_4px_20px_rgba(27,41,39,0.035)]">
             <p className="text-xs text-mute">{k}</p>
-            <p className="mt-3 font-serif text-3xl tracking-tight">{v}</p>
+            <p className="mt-3 font-serif text-4xl tracking-tight">{v}</p>
             <p className="mt-2 text-xs text-mute">{n}</p>
           </div>
         ))}
       </div>
 
-      <h2 className="mt-14 font-serif text-2xl">By source</h2>
+      <h2 className="mt-12 font-serif text-3xl">Source performance</h2>
       <div className="mt-5 overflow-x-auto rounded-2xl border border-line bg-card">
         <table className="w-full min-w-[640px] text-sm">
           <thead className="text-left text-xs text-mute"><tr className="border-b border-line">
@@ -82,10 +82,10 @@ export default async function Dashboard() {
       </div>
       <p className="mt-3 text-xs text-mute">Spend figures are sample data. Edit them under Source spend in the admin.</p>
 
-      <div className="mt-14 grid gap-8 lg:grid-cols-2">
+      <div className="mt-12 grid gap-5 lg:grid-cols-2">
         <section>
           <h2 className="font-serif text-2xl">Chats flagged for review <span className="text-mute">({flagged.length})</span></h2>
-          <ul className="mt-4 divide-y divide-line rounded-2xl border border-line bg-card">
+          <ul className="mt-4 divide-y divide-line rounded-2xl border border-line bg-white shadow-[0_4px_20px_rgba(27,41,39,0.035)]">
             {flagged.length === 0 && <li className="px-5 py-6 text-sm text-mute">Nothing to review.</li>}
             {flagged.slice(0, 6).map((l) => (
               <li key={l.id} className="px-5 py-3.5 text-sm"><Link href={`/staff/leads/${l.id}`} className="font-medium hover:underline">{l.name}</Link><p className="mt-0.5 text-xs text-mute">{l.flagReason}</p></li>

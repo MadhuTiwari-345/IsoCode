@@ -1,5 +1,5 @@
 {
-  "name": "figma-make-app",
+  "name": "homiq",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,16 +10,18 @@
     "format": "oxfmt",
     "generate:importmap": "NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "NODE_OPTIONS=--no-deprecation payload generate:types",
-    "payload": "NODE_OPTIONS=--no-deprecation payload"
+    "payload": "NODE_OPTIONS=--no-deprecation payload",
+    "db:migrate": "payload migrate",
+    "db:migrate:create": "payload migrate:create"
   },
   "dependencies": {
-    "@payloadcms/figma": "1.0.0-beta.1",
     "@payloadcms/next": "4.0.0-beta.4",
     "@payloadcms/plugin-cloud-storage": "4.0.0-beta.4",
     "@payloadcms/plugin-mcp": "4.0.0-beta.4",
     "@payloadcms/richtext-lexical": "4.0.0-beta.4",
     "@payloadcms/translations": "4.0.0-beta.4",
     "@payloadcms/ui": "4.0.0-beta.4",
+    "@payloadcms/db-mongodb": "4.0.0-beta.4",
     "graphql": "^16.8.1",
     "html-react-parser": "^5.2.10",
     "monaco-editor": "0.55.1",
@@ -40,7 +42,7 @@
     "typescript": "6.0.3"
   },
   "engines": {
-    "node": ">=24.22.1",
+    "node": "^24.22.1",
     "pnpm": "^9 || ^10 || ^11"
   },
   "pnpm": {
@@ -49,5 +51,6 @@
       "esbuild",
       "unrs-resolver"
     ]
-  }
+  },
+  "packageManager": "pnpm@10.28.0"
 }

@@ -6,7 +6,7 @@ import { getPayloadClient } from './payload'
 const COOKIE = 'app-session'
 const MAX_AGE = 60 * 60 * 24 * 7
 // The preview runs in a cross-site iframe, which needs SameSite=None; Secure.
-const secure = [process.env.FIGMA_PUBLIC_URL, process.env.NEXT_PUBLIC_SITE_URL].some((u) => u?.startsWith('https'))
+const secure = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_SITE_URL?.startsWith('https') === true
 
 /**
  * Website login for the given auth collection. It uses its own `app-session` cookie, so it is

@@ -25,8 +25,8 @@ export const Leads: CollectionConfig = {
         if (data.phone) data.phoneNormalized = normalizePhone(data.phone)
         if (operation === 'create') {
           if (!data.leadCode) {
-            const { totalDocs } = await req.payload.count({ collection: 'leads', req, overrideAccess: true })
-            data.leadCode = `LD-${60001 + totalDocs}`
+            // Avoid countDocuments inside Payload's Mongo transaction.
+            data.leadCode = `LD-${Date.now().toString().slice(-9)}${Math.random().toString(36).slice(2, 5).toUpperCase()}`
           }
           if (!data.enquiredAt) data.enquiredAt = new Date().toISOString()
           // Duplicate detection: same normalised phone or email as an earlier lead.
@@ -36,7 +36,7 @@ export const Leads: CollectionConfig = {
           if (or.length) {
             const found = await req.payload.find({
               collection: 'leads', where: { and: [{ or }, { isDuplicate: { not_equals: true } }] },
-              sort: 'enquiredAt', limit: 1, depth: 0, req, overrideAccess: true,
+              sort: 'enquiredAt', limit: 1, pagination: false, depth: 0, req, overrideAccess: true,
             })
             if (found.docs[0]) {
               data.isDuplicate = true
