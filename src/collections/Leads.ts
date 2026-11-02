@@ -71,6 +71,7 @@ export const Leads: CollectionConfig = {
     },
     { name: 'assignedTo', type: 'relationship', relationTo: 'sales-executives' },
     { name: 'enquiredAt', type: 'date', required: true, index: true },
+    { name: 'firstResponseAt', type: 'date', index: true, admin: { description: 'Timestamp when the first assistant or staff response was recorded.' } },
     { name: 'firstResponseMinutes', type: 'number', admin: { description: 'Minutes from enquiry to first response. Empty = not yet contacted.' } },
     { name: 'isDuplicate', type: 'checkbox', defaultValue: false, index: true },
     { name: 'duplicateOf', type: 'relationship', relationTo: 'leads' },
