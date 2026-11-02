@@ -27,8 +27,8 @@ export default async function HomePage() {
           <div className="relative isolate overflow-hidden rounded-[28px] md:rounded-[40px]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={PHOTOS.hero} alt="Modern apartment building with glass balconies at dusk" className="absolute inset-0 -z-10 h-full w-full object-cover" />
-            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0f1830]/85 via-[#0f1830]/45 to-transparent" />
-            <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0f1830]/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#10251f]/88 via-[#10251f]/48 to-transparent" />
+            <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#10251f]/65 via-transparent to-transparent" />
             <div className="mx-auto max-w-6xl px-6 pb-48 pt-24 text-white md:px-10 md:pb-56 md:pt-36">
               <p className="text-xs uppercase tracking-[0.3em] text-white/70">Ahmedabad · 2 and 3 BHK residences</p>
               <h1 className="mt-6 max-w-3xl font-serif text-6xl font-medium leading-[0.95] tracking-tight md:text-8xl">Homes made for the way you live.</h1>
@@ -36,9 +36,9 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="relative mx-auto -mt-28 max-w-4xl px-3 md:-mt-32">
-            <div className="rounded-3xl border border-line bg-card p-5 shadow-[0_30px_80px_-30px_rgba(22,33,58,0.45)] md:p-7">
+            <div className="rounded-3xl border border-line bg-card p-5 shadow-[0_30px_80px_-30px_rgba(27,41,39,0.28)] md:p-7">
               <div className="grid items-center gap-5 md:grid-cols-[1fr_auto]">
-                <div><p className="font-serif text-3xl font-semibold leading-tight">Talk to us in under two minutes</p><p className="mt-1 text-sm text-mute">Choose your language to begin. No obligation.</p></div>
+                <div><p className="font-serif text-3xl font-semibold leading-tight">A better way to find your next home</p><p className="mt-1 text-sm text-mute">Start a conversation in English, हिन्दी or ગુજરાતી. No pressure, just clear answers.</p></div>
                 <div className="flex flex-wrap gap-2">
                   {['English', 'हिन्दी', 'ગુજરાતી'].map((l) => <Link key={l} href="/chat" className="rounded-full border border-line px-5 py-3 text-sm transition hover:border-moss hover:bg-moss-soft">{l}</Link>)}
                   <Link href="/chat" className="btn-grad rounded-full px-6 py-3 text-sm font-medium text-white">Book a visit</Link>
