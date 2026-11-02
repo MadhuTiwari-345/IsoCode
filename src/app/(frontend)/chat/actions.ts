@@ -6,6 +6,7 @@ import { t, detectTopic, DISCOUNT_RE, type Lang } from '@/lib/chat-i18n'
 import { normalizePhone } from '@/lib/phone'
 import { fmtDateTime, fmtDay, fmtTime } from '@/lib/staff'
 import { formatLakh } from '@/lib/catalog'
+import { remainingCapacity } from '@/lib/booking-capacity'
 import type { Lead, Project, SalesExecutive } from '@/payload-types'
 
 export type Ctx = { lang: Lang; leadId?: string; projectId?: string; bhk?: '2' | '3'; budget?: [number, number] }
@@ -87,7 +88,7 @@ async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
   const used = new Map<string, number>()
   for (const b of booked.docs) used.set(b.slot as string, (used.get(b.slot as string) ?? 0) + 1)
   return slots.docs
-    .map((s) => ({ id: s.id, remaining: s.capacity - (used.get(s.id) ?? 0), startsAt: s.startsAt }))
+    .map((s) => ({ id: s.id, remaining: remainingCapacity(s.capacity, Array.from({ length: used.get(s.id) ?? 0 }, () => ({ status: 'booked' }))), startsAt: s.startsAt }))
     .filter((s) => s.remaining > 0)
     .slice(0, 8)
     .map((s) => ({ id: s.id, remaining: s.remaining, label: fmtDateTime(s.startsAt), day: fmtDay(s.startsAt), time: fmtTime(s.startsAt) }))
