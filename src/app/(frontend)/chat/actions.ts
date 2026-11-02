@@ -255,19 +255,54 @@ async function flag(leadId: string | undefined, reason: string, pendingBuyerText
 async function handoffToPerson(ctx: Ctx, reason: string, buyerText?: string): Promise<Reply> {
   const lang = ctx.lang
   const payload = await getPayloadClient()
-  let execName = ''
-  if (ctx.leadId) {
-    const lead = await payload.findByID({ collection: 'leads', id: ctx.leadId, depth: 0, overrideAccess: true }).catch(() => null)
-    if (lead) {
-      const exec = lead.assignedTo ? await payload.findByID({ collection: 'sales-executives', id: lead.assignedTo as string, depth: 0, overrideAccess: true }).catch(() => null) : await pickExec(ctx.projectId, lang)
-      execName = exec?.name ?? ''
-      await payload.update({
-        collection: 'leads', id: lead.id, overrideAccess: true,
-        data: { assignedTo: exec?.id, flagged: true, flagReason: reason, handedOffAt: new Date().toISOString(), summary: lead.summary || `${lead.name} asked for a person. ${ctx.bhk ? ctx.bhk + ' BHK. ' : ''}${ctx.budget ? `Budget ${formatLakh(ctx.budget[0])} to ${formatLakh(ctx.budget[1])}.` : ''}` },
-      })
-    }
+  const lead = ctx.leadId
+    ? await payload.findByID({ collection: 'leads', id: ctx.leadId, depth: 0, overrideAccess: true }).catch(() => null)
+    : null
+  const exec = lead?.assignedTo
+    ? await payload.findByID({ collection: 'sales-executives', id: lead.assignedTo as string, depth: 0, overrideAccess: true }).catch(() => null)
+    : await pickExec(ctx.projectId, lang)
+  const execName = exec?.name ?? ''
+
+  // Save the buyer's triggering message and the assistant's handoff response
+  // before reading the transcript. This prevents the summary from racing writes.
+  const result = await reply(ctx, {
+    messages: [execName ? t(lang, 'humanDone', { exec: execName }) : t(lang, 'humanNoExec')],
+    chips: ctx.projectId ? nextChips(lang, true).filter((chip) => chip.action !== 'human') : undefined,
+  }, buyerText)
+
+  if (lead) {
+    const transcript = await payload.find({
+      collection: 'chat-messages',
+      where: { lead: { equals: lead.id } },
+      depth: 0,
+      limit: 1000,
+      sort: 'createdAt',
+      pagination: false,
+      overrideAccess: true,
+    })
+    const transcriptText = transcript.docs
+      .map((message) => `${message.role === 'buyer' ? 'Buyer' : 'HOMIQ'}: ${message.text}`)
+      .join('\\n')
+    const summary = [
+      `Lead: ${lead.name}; source: ${lead.source}; language: ${lead.language}.`,
+      `Project: ${lead.project || ctx.projectId || 'not selected'}; preference: ${ctx.bhk ?? lead.bhk ?? 'not stated'} BHK; budget: ${ctx.budget ? `₹${ctx.budget[0]}L to ₹${ctx.budget[1]}L` : 'not stated'}.`,
+      `Escalation: ${reason}`,
+      transcriptText || 'No conversation messages recorded.',
+    ].join('\\n\\n')
+    await payload.update({
+      collection: 'leads',
+      id: lead.id,
+      overrideAccess: true,
+      data: {
+        assignedTo: exec?.id,
+        flagged: true,
+        flagReason: reason,
+        handedOffAt: new Date().toISOString(),
+        summary,
+      },
+    })
   }
-  return reply(ctx, { messages: [execName ? t(lang, 'humanDone', { exec: execName }) : t(lang, 'humanNoExec')], chips: ctx.projectId ? nextChips(lang, true).filter((c) => c.action !== 'human') : undefined }, buyerText)
+  return result
 }
 
 export async function askQuestion(input: { ctx: Ctx; text: string }): Promise<Reply> {
