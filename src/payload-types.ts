@@ -299,6 +299,7 @@ export interface SalesExecutive {
 export interface Project {
   id: string;
   name: string;
+  approvedForPublic: boolean;
   slug: string;
   locality: string;
   tagline?: string | null;
