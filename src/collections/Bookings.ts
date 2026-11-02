@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isStaff } from './access'
-import { remainingCapacity } from '../lib/booking-capacity'
+import { exceedsCapacity } from '../lib/booking-capacity'
 
 const HOUR = 3600_000
 
@@ -40,7 +40,7 @@ export const Bookings: CollectionConfig = {
           where: { and: [{ slot: { equals: slotId } }, { status: { in: ['booked', 'attended'] } }] },
           limit: 1000, pagination: false,
         })
-        if (remainingCapacity(slot.capacity, activeBookings.docs) === 0 && activeBookings.docs.some((booking) => booking.id === doc.id)) {
+        if (exceedsCapacity(slot.capacity, activeBookings.docs)) {
           // Compensate explicitly: do not rely on transaction support. If two
           // requests race, both may back out, but capacity is never exceeded.
           await req.payload.delete({ collection: 'bookings', id: doc.id, req, overrideAccess: true })
