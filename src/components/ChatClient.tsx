@@ -71,7 +71,7 @@ export default function ChatClient() {
       <div className="flex-1 space-y-5 overflow-y-auto py-8">
         {msgs.map((m, i) => (
           <div key={i} className={`rise flex ${m.role === 'buyer' ? 'justify-end' : 'justify-start'}`}>
-            <p className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-3 text-[15px] leading-relaxed ${m.role === 'buyer' ? 'bg-moss text-white' : 'border border-line bg-card text-ink'}`}>{m.text}</p>
+            <p className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-3.5 text-[14px] leading-relaxed shadow-[0_2px_10px_rgba(27,41,39,0.04)] sm:px-5 sm:text-[15px] ${m.role === 'buyer' ? 'bg-moss text-white' : 'border border-line bg-card text-ink'}`}>{m.text}</p>
           </div>
         ))}
 
@@ -82,7 +82,7 @@ export default function ChatClient() {
         )}
 
         {step === 'register' && (
-          <form onSubmit={submitRegister} className="rise space-y-3 rounded-2xl border border-line bg-card p-5">
+          <form onSubmit={submitRegister} className="rise space-y-3 rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5">
             <input className={input} placeholder={t(lang, 'name')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" aria-label={t(lang, 'name')} />
             <input className={input} placeholder={t(lang, 'phone')} inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} autoComplete="tel" aria-label={t(lang, 'phone')} />
             <label className="flex gap-3 text-[13px] leading-snug text-mute"><input type="checkbox" className="mt-0.5 accent-[#6d5efc]" checked={form.consent} onChange={(e) => setForm({ ...form, consent: e.target.checked })} />{t(lang, 'consent')}</label>
@@ -120,9 +120,9 @@ export default function ChatClient() {
       </div>
 
       {step === 'flow' && !code && (
-        <form onSubmit={ask} className="flex gap-2 pb-5">
-          <input className={input} value={text} onChange={(e) => setText(e.target.value)} placeholder={t(lang, 'inputPh')} aria-label={t(lang, 'inputPh')} />
-          <button disabled={pending} className="rounded-xl bg-ink px-5 text-sm font-medium text-white disabled:opacity-60">{t(lang, 'send')}</button>
+        <form onSubmit={ask} className="sticky bottom-0 flex gap-2 border-t border-line bg-paper/95 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+          <input className={`${input} min-w-0 bg-white`} value={text} onChange={(e) => setText(e.target.value)} placeholder={t(lang, 'inputPh')} aria-label={t(lang, 'inputPh')} />
+          <button disabled={pending} className="rounded-xl bg-ink px-5 text-sm font-medium text-white transition hover:bg-moss disabled:opacity-60">{t(lang, 'send')}</button>
         </form>
       )}
     </div>
