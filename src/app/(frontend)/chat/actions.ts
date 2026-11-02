@@ -84,8 +84,9 @@ async function pickExec(project: string | undefined, lang: Lang): Promise<SalesE
   const pool = fit(true).length ? fit(true) : execs
   let best: SalesExecutive | null = null, bestLoad = Infinity
   for (const e of pool) {
-    const { totalDocs } = await payload.count({ collection: 'leads', overrideAccess: true, where: { and: [{ assignedTo: { equals: e.id } }, { stage: { in: ['qualified', 'visit_booked'] } }] } })
-    if (totalDocs < bestLoad) { best = e; bestLoad = totalDocs }
+    const assigned = await payload.find({ collection: 'leads', overrideAccess: true, depth: 0, where: { and: [{ assignedTo: { equals: e.id } }, { stage: { in: ['qualified', 'visit_booked'] } }] }, limit: 1000, pagination: false })
+    const load = assigned.docs.length
+    if (load < bestLoad) { best = e; bestLoad = load }
   }
   return best
 }
