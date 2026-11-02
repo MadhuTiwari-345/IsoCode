@@ -54,6 +54,10 @@ export default buildConfig({
   collections: [Admins, Media, Folders, Tags, Users, Projects, FactSheet, SalesExecutives, VisitSlots, Leads, ChatMessages, Bookings, SourceSpend],
   db: mongooseAdapter({
     url: process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/homiq',
+    // The deployed Atlas-compatible Mongo endpoint does not support Payload's
+    // multi-document transactions. Disable them explicitly rather than letting
+    // buyer registration fail while Payload starts a transaction.
+    transactionOptions: false,
   }),
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
