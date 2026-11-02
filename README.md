@@ -1,117 +1,180 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/HOMIQ-Residential%20Lead%20Experience-234F43?style=for-the-badge&labelColor=1B2927" alt="HOMIQ" />
+  <img src="https://img.shields.io/badge/HOMIQ-Residential%20Experience-234F43?style=for-the-badge&labelColor=1B2927" alt="HOMIQ" />
 </p>
 
 <h1 align="center">🏡 HOMIQ</h1>
 
 <p align="center">
-  <strong>A calmer way to discover a home. A faster way to follow up.</strong><br/>
-  Multilingual buyer conversations • Lead intelligence • Site-visit scheduling
+  <strong>A more thoughtful first step towards finding a home.</strong><br/>
+  Residential discovery · Multilingual conversations · Lead management · Site visits
 </p>
 
 <p align="center">
-  <a href="https://isocode-homiq.vercel.app/"><img src="https://img.shields.io/badge/Live%20Demo-Open%20HOMIQ-234F43?style=for-the-badge&logo=vercel&logoColor=F7F7F4" alt="Live demo" /></a>
-  <a href="https://github.com/MadhuTiwari-345/IsoCode"><img src="https://img.shields.io/badge/GitHub-Repository-A27B45?style=for-the-badge&logo=github&logoColor=F7F7F4" alt="GitHub repository" /></a>
+  <a href="https://isocode-homiq.vercel.app/"><img src="https://img.shields.io/badge/Live%20Website-Visit%20HOMIQ-234F43?style=for-the-badge&logo=vercel&logoColor=white" alt="Visit HOMIQ" /></a>
+  <a href="https://github.com/MadhuTiwari-345/IsoCode"><img src="https://img.shields.io/badge/Source-GitHub-1B2927?style=for-the-badge&logo=github&logoColor=white" alt="GitHub repository" /></a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16-1B2927?style=for-the-badge&logo=next.js&logoColor=F7F7F4" alt="Next.js 16" />
-  <img src="https://img.shields.io/badge/React-19-234F43?style=for-the-badge&logo=react&logoColor=F7F7F4" alt="React 19" />
-  <img src="https://img.shields.io/badge/Payload_CMS-4-A27B45?style=for-the-badge&logo=payloadcms&logoColor=F7F7F4" alt="Payload CMS 4" />
-  <img src="https://img.shields.io/badge/MongoDB-Database-234F43?style=for-the-badge&logo=mongodb&logoColor=F7F7F4" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4-1B2927?style=for-the-badge&logo=tailwindcss&logoColor=F7F7F4" alt="Tailwind CSS 4" />
+  <img src="https://img.shields.io/badge/Next.js-16-1B2927?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/React-19-234F43?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Payload_CMS-4-A27B45?style=for-the-badge&logo=payloadcms&logoColor=white" alt="Payload CMS 4" />
+  <img src="https://img.shields.io/badge/MongoDB-Database-234F43?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-1B2927?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
 </p>
 
 ---
 
-<p align="center"><em>Thoughtful homes deserve a thoughtful first conversation.</em></p>
+<p align="center"><em>Thoughtful homes deserve thoughtful conversations.</em></p>
 
-## 🏡 Overview
+## 🏡 About HOMIQ
 
-HOMIQ is a residential discovery and lead-management experience for a developer with two live projects in Ahmedabad. It brings buyer enquiries, project information, conversations, sales follow-up and site visits into one connected workflow.
+HOMIQ is a residential discovery and lead-management application designed around the journey from a buyer's first enquiry to a scheduled property visit.
 
-The product is designed around a simple operational goal: respond quickly, understand what a buyer needs, and make it easy to arrange a site visit without losing the conversation along the way.
+The project brief describes a real estate developer with two active residential projects in Ahmedabad and a portfolio of 420 apartments across 2 BHK and 3 BHK configurations. HOMIQ brings buyer enquiries, project information, guided conversations and sales follow-up into one connected experience.
 
-**Project context**
-- 2 residential projects
-- 420 apartments across 2 BHK and 3 BHK configurations
-- Overall indicative price range supplied in the brief: ₹65 lakh–₹1.2 crore
-- Buyer-facing experience designed for mobile, with English, Hindi and Gujarati language options
+The goal is straightforward: help buyers get useful answers, help sales teams respond with context, and make the next step clear.
 
-Project names, addresses, RERA registration numbers, project-wise inventory and exact unit prices are intentionally not fabricated. Those details must be entered and verified by the sales team before being published.
+### Project context
 
-## ✨ Product experience
-
-| Area | What it does |
+| Brief detail | Supplied context |
 | --- | --- |
-| **Project discovery** | Presents the two developments and the supplied portfolio-level facts without inventing project-specific claims. |
-| **Buyer concierge** | Guides buyers through language, contact, configuration and budget questions in English, Hindi or Gujarati. |
-| **Fact-sheet answers** | Uses sales-managed project facts for supported answers; unanswered questions are flagged for human follow-up. |
-| **Lead inbox** | Keeps enquiries in one place with source, stage, ownership and duplicate indicators. |
-| **Visit scheduling** | Shows available visit slots and creates a booking record with reminder timestamps. |
-| **Sales handoff** | Assigns a named sales executive and retains a concise buyer summary and conversation history. |
-| **Sales overview** | Surfaces lead and visit activity to help the team understand source performance. |
+| Location | Ahmedabad, Gujarat |
+| Residential projects | 2 |
+| Apartment portfolio | 420 homes |
+| Configurations | 2 BHK and 3 BHK |
+| Overall indicative range | ₹65 lakh to ₹1.2 crore |
+| Enquiry sources | Property portals, social ads, website and hoardings |
+| Languages | English, Hindi and Gujarati |
 
-> **Integration note:** WhatsApp delivery, outbound messages and payment/allotment workflows are not represented as live integrations. WhatsApp opt-in is captured separately; external messaging remains a future integration.
+The price range above is portfolio-level context from the brief. It is not a quote for a particular project or apartment. Project names, addresses, RERA registration numbers, live inventory and unit-level prices must come from verified sales data. They are not guessed or fabricated in this repository.
 
-## 🎨 Design direction
+## ✨ Product capabilities
 
-HOMIQ uses a restrained residential identity rather than a generic property-listing template.
+### Buyer experience
 
-| Token | Value | Use |
+- **Residential discovery:** A public-facing experience for exploring the developer's residential offering.
+- **Guided buyer chat:** A conversational flow designed to understand configuration, budget and buyer requirements.
+- **Language choices:** English, Hindi and Gujarati are part of the intended buyer journey.
+- **Lead capture:** Buyer details and enquiry context can be collected for sales follow-up.
+- **Visit planning:** The product includes visit-slot and booking concepts to support scheduling.
+
+### Sales workspace
+
+- **Lead inbox:** Bring enquiries from different sources into a shared workflow.
+- **Lead context:** Keep source, preferences, stage and ownership alongside the buyer record.
+- **Duplicate awareness:** Identify possible repeat enquiries instead of treating every submission as unrelated.
+- **Sales handoff:** Preserve buyer context so a sales executive can continue the conversation.
+- **Operational overview:** Organize lead and visit information for sales-team review.
+- **Fact management:** Keep project information in a managed source rather than relying on invented AI answers.
+
+### Product principles
+
+| Principle | How HOMIQ approaches it |
+| --- | --- |
+| Accuracy first | The assistant should use approved project facts and escalate unanswered questions. |
+| Human support | Buyers can request a sales representative instead of continuing with automation. |
+| Responsible pricing | The assistant must not promise a final price or discount. |
+| Consent | Buyer contact and messaging preferences must be handled transparently. |
+| Clear operations | Lead ownership and visit information should remain available to the sales team. |
+
+> **Integration status:** The repository includes application workflows and data structures for leads, chat, sales users, visit slots and bookings. A stored reminder timestamp does not itself send a reminder. Live WhatsApp delivery, outbound messaging, payment collection and allotment workflows are not claimed as active integrations.
+
+## 🧭 How the workflow fits together
+
+```text
+Buyer enquiry
+     |
+     v
+Lead capture and source context
+     |
+     v
+Guided conversation
+     |
+     +---- Approved fact available ----> Answer from project information
+     |
+     +---- Fact missing / human requested -> Sales follow-up
+     |
+     v
+Buyer requirements and preferences
+     |
+     v
+Visit slot selection
+     |
+     v
+Booking record and sales coordination
+```
+
+This is the intended product workflow. External message delivery and reminder execution require separately configured services.
+
+## 🎨 Visual identity
+
+HOMIQ uses a calm, editorial visual direction inspired by residential spaces. The interface pairs warm neutral surfaces with a deep green primary colour, restrained brass accents and clear typography.
+
+| Design token | Hex value | Role |
 | --- | --- | --- |
-| Warm ivory | `#F7F7F4` | Main canvas |
-| Deep forest | `#234F43` | Primary actions |
-| Charcoal | `#1B2927` | Text and structure |
-| Muted brass | `#A27B45` | Small accents |
-| White | `#FFFFFF` | Cards and surfaces |
+| Warm ivory | `#F7F7F4` | Main background |
+| Deep forest | `#234F43` | Primary actions and emphasis |
+| Charcoal | `#1B2927` | Main text and structure |
+| Muted brass | `#A27B45` | Secondary accents |
+| White | `#FFFFFF` | Cards and raised surfaces |
 
-Editorial serif display typography is paired with a clean sans-serif interface. Layouts prioritize whitespace, clear hierarchy, accessible controls and compact mobile interactions.
+The design prioritizes readable hierarchy, generous spacing, responsive layouts and accessible interactive states.
 
-## 🧰 Tech stack
+## 🧰 Technology
 
-- **Framework:** Next.js 16, React 19, TypeScript
-- **CMS and server data:** Payload CMS 4
-- **Database:** MongoDB through Payload's Mongoose adapter
-- **Styling:** Tailwind CSS 4
-- **Hosting:** Vercel
+| Layer | Technology | Responsibility |
+| --- | --- | --- |
+| Web framework | Next.js 16 | Application routing and rendering |
+| UI | React 19 | Interactive interface |
+| Language | TypeScript | Typed application code |
+| Content and admin | Payload CMS 4 | Collections and administration |
+| Database | MongoDB | Persistent application data |
+| Database adapter | Payload Mongoose adapter | Payload database connection |
+| Styling | Tailwind CSS 4 | Responsive styling |
+| Hosting | Vercel | Web deployment |
 
-## 🗂️ Core data
+## 🗃️ Data model
 
-The Payload collections organize the product around these records:
+The Payload configuration registers collections for the main application concepts:
 
-- **Projects** and **Fact Sheet** — sales-approved project information
-- **Leads** — contact, source, preferences, consent, stage, duplicate reference and ownership
-- **Chat Messages** — buyer and assistant transcript
-- **Sales Executives** — staff assignment and language/project coverage
-- **Visit Slots** and **Bookings** — availability, visit details and reminder timestamps
-- **Source Spend** — marketing spend inputs for source-level reporting
-- **Users** and **Admins** — buyer/staff accounts and CMS administration
+- **Projects:** Residential project records.
+- **Fact Sheet:** Sales-managed facts used to support buyer conversations.
+- **Leads:** Buyer contact details, source, preferences, consent, stage and ownership.
+- **Chat Messages:** Conversation history.
+- **Sales Executives:** Sales-team records and assignment context.
+- **Visit Slots:** Visit availability.
+- **Bookings:** Scheduled visit records and reminder timestamps.
+- **Source Spend:** Marketing spend inputs for source-level reporting.
+- **Users and Admins:** Application users and administrative access.
+- **Media, Folders and Tags:** Content organization.
 
-The database may also contain legacy sample records. They are retained rather than destructively replaced during setup.
+## 🚀 Getting started
 
-## 🚀 Run locally
+### Requirements
 
-### Prerequisites
-
-- Node.js 24.22.1 or newer
-- pnpm 10
-- MongoDB connection string
+- Node.js **24.22.1 or newer**, as specified by the project package configuration
+- pnpm 9, 10 or 11
+- A reachable MongoDB database
 - A Payload secret
 
-### Setup
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/MadhuTiwari-345/IsoCode.git
 cd IsoCode
-
-corepack enable
-pnpm install
-
-cp .env.example .env
 ```
 
-Set the environment variables in `.env`:
+### 2. Install dependencies
+
+```bash
+corepack enable
+pnpm install
+```
+
+### 3. Configure environment variables
+
+Create a `.env` file in the repository root:
 
 ```env
 DATABASE_URL=mongodb+srv://<username>:<password>@<cluster>/<database>
@@ -119,55 +182,118 @@ PAYLOAD_SECRET=<long-random-secret>
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Then generate Payload artifacts and start the application:
+Use your own MongoDB connection string and a securely generated secret. Do not commit real credentials.
+
+### 4. Generate Payload files
 
 ```bash
 pnpm generate:importmap
 pnpm generate:types
+```
+
+### 5. Start the development server
+
+```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The Payload admin is available at [http://localhost:3000/admin](http://localhost:3000/admin).
+Open [http://localhost:3000](http://localhost:3000).
+
+The Payload admin interface is available at [http://localhost:3000/admin](http://localhost:3000/admin).
+
+## 📜 Available scripts
+
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Start the Next.js development server |
+| `pnpm build` | Build the Payload and Next.js application |
+| `pnpm start` | Start the production server |
+| `pnpm generate:importmap` | Generate the Payload import map |
+| `pnpm generate:types` | Generate Payload TypeScript types |
+| `pnpm payload` | Run the Payload CLI |
+| `pnpm db:migrate` | Run Payload database migrations |
+| `pnpm db:migrate:create` | Create a database migration |
+| `pnpm format` | Format supported files with oxfmt |
 
 ## ☁️ Deployment
 
-The project is configured for Vercel.
+HOMIQ is deployed on Vercel.
 
-1. Import the GitHub repository into Vercel.
-2. Set the Root Directory to the repository root and use Node.js 24.x.
-3. Configure `DATABASE_URL`, `PAYLOAD_SECRET` and `NEXT_PUBLIC_SITE_URL` for the required environments.
-4. Confirm the database is reachable from the deployment.
-5. Deploy and verify the public pages and authenticated staff routes.
+1. Import this GitHub repository into Vercel.
+2. Set the project root to the repository root.
+3. Select Node.js 24.x.
+4. Add the required environment variables:
+   - `DATABASE_URL`
+   - `PAYLOAD_SECRET`
+   - `NEXT_PUBLIC_SITE_URL`
+5. Confirm that the MongoDB database accepts connections from the deployment environment.
+6. Deploy and verify the public pages, buyer conversation flow and protected staff routes.
 
-Never commit real environment values. Keep production secrets in Vercel's encrypted environment-variable settings.
+Keep production credentials in Vercel environment settings. Never add secrets to source control.
 
-## 🔐 Privacy and operational safeguards
+## 🔐 Privacy and AI safeguards
 
-- Buyer contact details are personal data. Capture consent before creating a buyer lead and respect opt-outs.
-- WhatsApp communication must only be enabled after the relevant opt-in and approved template setup.
-- Promotional project claims and RERA details must be verified by the sales head before publication.
-- The concierge must not invent missing project facts, quote a final price or promise a discount.
-- Unknown or sensitive buyer questions should be flagged for a human sales representative.
+- Collect buyer consent before storing contact information for follow-up.
+- Respect communication opt-outs.
+- Enable WhatsApp communication only after the required opt-in and approved template setup.
+- Use verified project facts for buyer-facing answers.
+- Escalate unanswered questions to a human sales representative.
+- Do not invent project details, RERA identifiers, inventory, final prices or discounts.
+- Restrict access to buyer information according to each user's role.
 
-## 🧭 Scope
+These are product requirements and operating safeguards. Their presence in this README should not be interpreted as a legal compliance certification.
 
-**Included in this slice:** lead capture, source tagging, duplicate indicators, multilingual guided chat, fact-sheet lookup, sales handoff, visit booking records and a sales workspace.
+## 📦 Project scope
 
-**Not included:** full CRM replacement, payment collection, allotment letters, outbound voice calling or a live WhatsApp Business integration.
+### In scope
 
-Reminder delivery and external messaging require a configured delivery provider or scheduled worker; storing reminder timestamps alone does not send messages.
+- Residential discovery experience
+- Lead capture and source context
+- Guided multilingual conversation
+- Sales-managed project facts
+- Lead management and handoff concepts
+- Visit-slot and booking workflows
+- Sales operations workspace
 
-## 📌 Live project
+### Outside the current scope
 
-<p align="center">
-  <a href="https://isocode-homiq.vercel.app/">
-    <img src="https://img.shields.io/badge/Visit-HOMIQ%20Live%20Site-234F43?style=for-the-badge&logo=vercel&logoColor=white" alt="Visit HOMIQ" />
-  </a>
-</p>
+- Full enterprise CRM replacement
+- Payment collection
+- Apartment allotment and legal documentation
+- Automated outbound voice calling
+- Live WhatsApp Business messaging integration
+
+Reminder timestamps are data only until a delivery provider and scheduled execution process are configured.
+
+## 🛣️ Next steps
+
+- [ ] Verify buyer registration and lead creation end to end in production
+- [ ] Add verified project content, imagery, addresses and RERA details
+- [ ] Test duplicate detection against concurrent submissions
+- [ ] Verify visit-slot capacity under simultaneous booking attempts
+- [ ] Configure and test reminder delivery
+- [ ] Connect an approved WhatsApp Business provider after opt-in and template review
+- [ ] Validate dashboard calculations against real operational data
+- [ ] Add automated tests for the critical buyer and staff workflows
+
+## 🤝 Contributing
+
+1. Fork the repository.
+2. Create a focused branch: `git checkout -b feature/your-change`.
+3. Make and test your changes.
+4. Commit with a clear message.
+5. Push your branch and open a pull request.
+
+Please describe user-visible changes and include reproduction steps when reporting a bug.
+
+## 🔗 Links
+
+- **Live application:** [isocode-homiq.vercel.app](https://isocode-homiq.vercel.app/)
+- **Repository:** [MadhuTiwari-345/IsoCode](https://github.com/MadhuTiwari-345/IsoCode)
 
 ---
 
 <p align="center">
-  <strong>Built with care for better first conversations.</strong><br/>
-  <sub>HOMIQ · Residential lead experience</sub>
+  <strong>HOMIQ</strong><br/>
+  <sub>A thoughtful first conversation can make all the difference.</sub>
 </p>
