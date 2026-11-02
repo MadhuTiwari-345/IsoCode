@@ -166,7 +166,7 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
 
   if (input.action === 'budget' && BUDGETS[value]) {
     const [lo, hi] = BUDGETS[value]
-    const projects = (await payload.find({ collection: 'projects', depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
+    const projects = (await payload.find({ collection: 'projects', where: { approvedForPublic: { equals: true } }, depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
     const fits = projects.filter((p) => p.priceFromLakh <= hi && p.priceToLakh >= lo && (!ctx.bhk || (p.configurations as string[] | undefined)?.includes(ctx.bhk)))
     const mid = (lo + hi) / 2
     const ranked = (fits.length ? fits : projects).slice().sort((a, b) => Math.abs((a.priceFromLakh + a.priceToLakh) / 2 - mid) - Math.abs((b.priceFromLakh + b.priceToLakh) / 2 - mid))
@@ -204,7 +204,7 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
   }
 
   if (input.action === 'back' && ctx.projectId) {
-    const all = (await payload.find({ collection: 'projects', depth: 0, limit: 10, overrideAccess: true })).docs
+    const all = (await payload.find({ collection: 'projects', where: { approvedForPublic: { equals: true } }, depth: 0, limit: 10, overrideAccess: true })).docs
     return reply(ctx, { messages: [t(lang, 'askVisit')], chips: nextChips(lang, all.length > 1) })
   }
 
