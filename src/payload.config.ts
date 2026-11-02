@@ -1,5 +1,5 @@
 import path from 'path'
-import { postgresAdapter } from '@payloadcms/db-postgres'
+import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import { en as adminLanguage } from '@payloadcms/translations/languages/en'
 import { buildConfig } from 'payload'
@@ -52,13 +52,8 @@ export default buildConfig({
     supportedLanguages: { en: adminLanguage },
   },
   collections: [Admins, Media, Folders, Tags, Users, Projects, FactSheet, SalesExecutives, VisitSlots, Leads, ChatMessages, Bookings, SourceSpend],
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URL,
-      max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-    },
+  db: mongooseAdapter({
+    url: process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/homiq',
   }),
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
