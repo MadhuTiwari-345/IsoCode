@@ -1,6 +1,5 @@
 'use server'
 
-import { after } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 import { appAuth, isStaffRole } from '@/lib/app-auth'
 import { t, detectTopic, DISCOUNT_RE, type Lang } from '@/lib/chat-i18n'
@@ -58,11 +57,12 @@ async function reply(ctx: Ctx, r: Omit<Reply, 'ok' | 'ctx'>, buyerText?: string)
       })
     }
   }
-  // Persist the transcript after the response has been prepared.
-  after(async () => {
+  // Persist each turn before returning it. Handoff summaries must never race
+  // an after-response callback and omit the message that triggered escalation.
+  if (leadId) {
     await log(leadId, 'buyer', buyerText ?? '')
     for (const m of r.messages) await log(leadId, 'assistant', m)
-  })
+  }
   return { ok: true, ctx, ...r }
 }
 
@@ -151,11 +151,9 @@ export async function registerBuyer(input: { ctx: Ctx; name: string; phone: stri
   })
   const next: Ctx = { ...ctx, leadId: lead.id }
   const lang = ctx.lang
-  // Replay the opening exchange so the saved history is complete.
-  after(async () => {
-    await log(lead.id, 'assistant', t(lang, 'greet'))
-    await log(lead.id, 'assistant', t(lang, 'askRegister'))
-  })
+  // Persist the opening exchange before the next buyer turn can arrive.
+  await log(lead.id, 'assistant', t(lang, 'greet'))
+  await log(lead.id, 'assistant', t(lang, 'askRegister'))
   return reply(next, {
     messages: [t(lang, 'askBhk', { name: name.split(' ')[0] })],
     chips: [{ label: t(lang, 'bhk2'), action: 'bhk', value: '2' }, { label: t(lang, 'bhk3'), action: 'bhk', value: '3' }],
