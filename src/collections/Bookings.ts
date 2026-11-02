@@ -34,11 +34,12 @@ export const Bookings: CollectionConfig = {
         const full = await req.payload.findByID({ collection: 'bookings', id: doc.id, depth: 0, req, overrideAccess: true })
         const slotId = full.slot as string
         const slot = await req.payload.findByID({ collection: 'visit-slots', id: slotId, depth: 0, req, overrideAccess: true })
-        const { totalDocs } = await req.payload.count({
-          collection: 'bookings', req, overrideAccess: true,
+        const activeBookings = await req.payload.find({
+          collection: 'bookings', req, overrideAccess: true, depth: 0,
           where: { and: [{ slot: { equals: slotId } }, { status: { in: ['booked', 'attended'] } }] },
+          limit: 1000, pagination: false,
         })
-        if (totalDocs > slot.capacity) {
+        if (activeBookings.docs.length > slot.capacity) {
           // Compensate explicitly: do not rely on transaction support. If two
           // requests race, both may back out, but capacity is never exceeded.
           await req.payload.delete({ collection: 'bookings', id: doc.id, req, overrideAccess: true })
