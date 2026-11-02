@@ -46,12 +46,18 @@ Live app: https://isocode-homiq.vercel.app
    pnpm dev
    ```
 
-6. Open:
+6. Run the booking-capacity unit tests with Node 24:
+
+   ```bash
+   pnpm test
+   ```
+
+7. Open:
    - Buyer website: http://localhost:3000
    - Sign in / buyer account: http://localhost:3000/login and http://localhost:3000/signup
    - Payload administration: http://localhost:3000/admin
 
-7. Create the first Payload administrator through the supported Payload initialization flow if the database is empty. Use the admin interface to create sales executives, project records, fact-sheet entries and visit slots. A buyer can create an account through the public sign-up page.
+8. Create the first Payload administrator through the supported Payload initialization flow if the database is empty. Use the admin interface to create sales executives, project records, fact-sheet entries and visit slots. A buyer can create an account through the public sign-up page.
 
 ## Production deployment
 
