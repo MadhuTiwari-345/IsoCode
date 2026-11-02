@@ -1,30 +1,12 @@
 import { unstable_cache } from 'next/cache'
 import { getPayloadClient } from './payload'
 
-/** Clearly labelled launch placeholders: never imply unverified project facts. */
-const launchProjects = [
-  {
-    id: 'launch-project-01', name: 'Project 01', slug: 'project-01',
-    locality: 'Ahmedabad', tagline: 'A considered 2 and 3 BHK residential address.',
-    address: '', latitude: null, longitude: null, reraNumber: '',
-    possession: 'Confirm with advisor', priceFromLakh: 65, priceToLakh: 120,
-    configurations: ['2', '3'], isLaunchPlaceholder: true,
-  },
-  {
-    id: 'launch-project-02', name: 'Project 02', slug: 'project-02',
-    locality: 'Ahmedabad', tagline: 'A second residential development to explore.',
-    address: '', latitude: null, longitude: null, reraNumber: '',
-    possession: 'Confirm with advisor', priceFromLakh: 65, priceToLakh: 120,
-    configurations: ['2', '3'], isLaunchPlaceholder: true,
-  },
-]
-
 /** Public, editor-managed data. Cached; invalidated by collection hooks via tags. */
 export const getProjects = unstable_cache(
   async () => {
     const payload = await getPayloadClient()
-    const res = await payload.find({ collection: 'projects', limit: 20, sort: 'name', depth: 0, overrideAccess: false })
-    return (res.docs.length ? res.docs : launchProjects) as any[]
+    const res = await payload.find({ collection: 'projects', where: { approvedForPublic: { equals: true } }, limit: 20, sort: 'name', depth: 0, overrideAccess: false })
+    return res.docs as any[]
   },
   ['projects-list'],
   { tags: ['projects'] },
@@ -36,8 +18,8 @@ export const getProjectBySlug = (slug: string) =>
   unstable_cache(
     async () => {
       const payload = await getPayloadClient()
-      const res = await payload.find({ collection: 'projects', where: { slug: { equals: slug } }, limit: 1, depth: 0, overrideAccess: false })
-      return (res.docs[0] ?? launchProjects.find((p) => p.slug === slug) ?? null) as any
+      const res = await payload.find({ collection: 'projects', where: { and: [{ slug: { equals: slug } }, { approvedForPublic: { equals: true } }] }, limit: 1, depth: 0, overrideAccess: false })
+      return (res.docs[0] ?? null) as any
     },
     ['project', slug],
     { tags: ['projects'] },
@@ -46,7 +28,6 @@ export const getProjectBySlug = (slug: string) =>
 export const getFacts = (projectId: string) =>
   unstable_cache(
     async () => {
-      if (projectId.startsWith('launch-project-')) return []
       const payload = await getPayloadClient()
       const res = await payload.find({ collection: 'fact-sheet', where: { project: { equals: projectId } }, limit: 50, depth: 0, overrideAccess: false })
       return res.docs
