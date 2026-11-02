@@ -20,9 +20,9 @@ const nextConfig: NextConfig = {
   },
   output: 'standalone',
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '**' },
-    ],
+    // The project uses CMS-managed and third-party property imagery.
+    // Keep Next's optimizer out of the path until trusted image hosts are configured.
+    unoptimized: true,
   },
   // Keep type checking enabled in production builds.
   typescript: {
