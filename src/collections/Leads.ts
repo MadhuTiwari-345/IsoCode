@@ -36,7 +36,7 @@ export const Leads: CollectionConfig = {
           if (or.length) {
             const found = await req.payload.find({
               collection: 'leads', where: { and: [{ or }, { isDuplicate: { not_equals: true } }] },
-              sort: 'enquiredAt', limit: 1, depth: 0, req, overrideAccess: true,
+              sort: 'enquiredAt', limit: 1, pagination: false, depth: 0, req, overrideAccess: true,
             })
             if (found.docs[0]) {
               data.isDuplicate = true
