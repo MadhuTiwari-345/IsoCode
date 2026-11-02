@@ -216,7 +216,28 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
 async function flag(leadId: string | undefined, reason: string) {
   if (!leadId) return
   const payload = await getPayloadClient()
-  await payload.update({ collection: 'leads', id: leadId, data: { flagged: true, flagReason: reason }, overrideAccess: true })
+  const lead = await payload.findByID({ collection: 'leads', id: leadId, depth: 0, overrideAccess: true }).catch(() => null)
+  if (!lead) return
+  const exec = lead.assignedTo
+    ? await payload.findByID({ collection: 'sales-executives', id: lead.assignedTo as string, depth: 0, overrideAccess: true }).catch(() => null)
+    : await pickExec(lead.project as string | undefined, (lead.language as Lang) || 'en')
+  const transcript = await payload.find({
+    collection: 'chat-messages', where: { lead: { equals: leadId } },
+    depth: 0, limit: 1000, sort: 'createdAt', pagination: false, overrideAccess: true,
+  })
+  const transcriptText = transcript.docs.map((m) => `${m.role === 'buyer' ? 'Buyer' : 'HOMIQ'}: ${m.text}`).join('\\n')
+  const summary = [
+    `Lead: ${lead.name}; source: ${lead.source}; language: ${lead.language}.`,
+    `Project: ${lead.project || 'not selected'}; preference: ${lead.bhk ? lead.bhk + ' BHK' : 'not stated'}; budget: ${lead.budgetMinLakh != null ? `₹${lead.budgetMinLakh}L to ₹${lead.budgetMaxLakh}L` : 'not stated'}.`,
+    `Escalation: ${reason}`,
+    transcriptText ? `Full conversation transcript:\\n${transcriptText}` : 'No persisted conversation messages yet.',
+  ].join('\\n\\n')
+  await payload.update({
+    collection: 'leads', id: leadId, data: {
+      flagged: true, flagReason: reason, assignedTo: exec?.id,
+      handedOffAt: new Date().toISOString(), summary,
+    }, overrideAccess: true,
+  })
 }
 
 async function handoffToPerson(ctx: Ctx, reason: string, buyerText?: string): Promise<Reply> {
