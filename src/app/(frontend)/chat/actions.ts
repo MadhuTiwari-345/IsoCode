@@ -122,16 +122,19 @@ export async function registerBuyer(input: { ctx: Ctx; name: string; phone: stri
   if (input.consent !== true) return { ok: false, error: t(ctx.lang, 'errConsent'), messages: [], ctx }
   const source = SOURCES.includes(String(input.source)) ? String(input.source) : 'website'
   const payload = await getPayloadClient()
-  const now = new Date().toISOString()
+  const enquiryAt = new Date()
+  const now = enquiryAt.toISOString()
   const account = await appAuth.currentUser()
   const owner = account && !isStaffRole(account) ? account.id : undefined
   const lead = await payload.create({
     collection: 'leads', overrideAccess: true,
     data: {
       user: owner, name, phone: `+91 ${phone.slice(0, 5)} ${phone.slice(5)}`, language: ctx.lang, source: source as Lead['source'], stage: 'engaged',
-      enquiredAt: now, firstResponseMinutes: 0, consentDpdp: true, consentAt: now, whatsappOptIn: input.whatsapp === true,
+      enquiredAt: now, consentDpdp: true, consentAt: now, whatsappOptIn: input.whatsapp === true,
     },
   })
+  const firstResponseAt = new Date()
+  await payload.update({ collection: 'leads', id: lead.id, overrideAccess: true, data: { firstResponseAt: firstResponseAt.toISOString(), firstResponseMinutes: Math.max(0, (firstResponseAt.getTime() - enquiryAt.getTime()) / 60_000) } })
   const next: Ctx = { ...ctx, leadId: lead.id }
   const lang = ctx.lang
   // Replay the opening exchange so the saved history is complete.
