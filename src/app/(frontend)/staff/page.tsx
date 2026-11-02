@@ -40,7 +40,7 @@ export default async function Dashboard() {
     ['Unreached after 48 hours', pct(unreached.length, old.length), `${unreached.length} of ${old.length} leads. Target under 5%`],
     ['Lead to visit rate', pct(visitLeads.size, leads.length), 'Target 8%'],
     ['Show-up rate', pct(showUp, done.length), `${showUp} of ${done.length} completed visits`],
-    ['Cost per visit', visitLeads.size ? inr(totalSpend / bookings.length) : '—', `${inr(totalSpend)} across ${bookings.length} visits`],
+    ['Cost per visit', bookings.length ? inr(totalSpend / bookings.length) : '—', `${inr(totalSpend)} across ${bookings.length} visits`],
   ]
   const flagged = leadsRes.docs.filter((l) => l.flagged)
   const waiting = leads.filter((l) => l.firstResponseMinutes == null).sort((a, b) => +new Date(a.enquiredAt) - +new Date(b.enquiredAt)).slice(0, 6)
