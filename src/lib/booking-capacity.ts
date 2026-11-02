@@ -16,3 +16,7 @@ export function remainingCapacity(capacity: number, bookings: CapacityBooking[])
 export function canReserveCapacity(capacity: number, bookings: CapacityBooking[]): boolean {
   return remainingCapacity(capacity, bookings) > 0
 }
+
+export function exceedsCapacity(capacity: number, bookings: CapacityBooking[]): boolean {
+  return countActiveBookings(bookings) > (Number.isInteger(capacity) && capacity >= 0 ? capacity : 0)
+}
