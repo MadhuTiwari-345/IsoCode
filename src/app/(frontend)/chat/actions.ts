@@ -41,8 +41,24 @@ async function log(leadId: string | undefined, role: 'buyer' | 'assistant', text
 }
 
 async function reply(ctx: Ctx, r: Omit<Reply, 'ok' | 'ctx'>, buyerText?: string): Promise<Reply> {
-  // Save the transcript after the response is sent, so the buyer is not kept waiting.
   const leadId = ctx.leadId
+  // Record the first assistant response when the response is prepared, not at lead creation.
+  if (leadId) {
+    const payload = await getPayloadClient()
+    const lead = await payload.findByID({ collection: 'leads', id: leadId, depth: 0, overrideAccess: true }).catch(() => null)
+    if (lead && !lead.firstResponseAt) {
+      const firstResponseAt = new Date()
+      const enquiredAt = new Date(lead.enquiredAt).getTime()
+      await payload.update({
+        collection: 'leads', id: leadId, overrideAccess: true,
+        data: {
+          firstResponseAt: firstResponseAt.toISOString(),
+          firstResponseMinutes: Number.isFinite(enquiredAt) ? Math.max(0, (firstResponseAt.getTime() - enquiredAt) / 60_000) : undefined,
+        },
+      })
+    }
+  }
+  // Persist the transcript after the response has been prepared.
   after(async () => {
     await log(leadId, 'buyer', buyerText ?? '')
     for (const m of r.messages) await log(leadId, 'assistant', m)
@@ -133,8 +149,6 @@ export async function registerBuyer(input: { ctx: Ctx; name: string; phone: stri
       enquiredAt: now, consentDpdp: true, consentAt: now, whatsappOptIn: input.whatsapp === true,
     },
   })
-  const firstResponseAt = new Date()
-  await payload.update({ collection: 'leads', id: lead.id, overrideAccess: true, data: { firstResponseAt: firstResponseAt.toISOString(), firstResponseMinutes: Math.max(0, (firstResponseAt.getTime() - enquiryAt.getTime()) / 60_000) } })
   const next: Ctx = { ...ctx, leadId: lead.id }
   const lang = ctx.lang
   // Replay the opening exchange so the saved history is complete.
