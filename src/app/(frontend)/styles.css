@@ -1,54 +1,61 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f6f1e9;
-  --color-card: #fffdf9;
-  --color-ink: #16213a;
-  --color-mute: #6c675e;
-  --color-line: #e5dccd;
-  --color-moss: #b9522f;
-  --color-moss-soft: #f6e4da;
-  --color-brass: #a07a2c;
-  --color-clay: #b3382a;
-  --color-subtle: #efe9de;
+  --color-paper: #f7f7f4;
+  --color-card: #ffffff;
+  --color-ink: #1b2927;
+  --color-mute: #66716d;
+  --color-line: #e4e9e5;
+  --color-moss: #286454;
+  --color-moss-soft: #e8f1ed;
+  --color-brass: #a27b45;
+  --color-clay: #a94438;
+  --color-subtle: #f0f3f0;
   --font-sans: var(--font-inter), var(--font-deva), var(--font-guj), system-ui, sans-serif;
   --font-serif: var(--font-display), var(--font-deva), var(--font-guj), Georgia, serif;
 }
 
 @layer base {
+  * { -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
   body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); }
-  ::selection { background: var(--color-moss); color: #fff; }
+  ::selection { background: #286454; color: #fff; }
+  :focus-visible { outline: 3px solid rgba(40, 100, 84, .35); outline-offset: 3px; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  input, select, textarea { color: var(--color-ink); }
+  summary::-webkit-details-marker { display: none; }
 }
 
-@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.rise { animation: rise 0.35s ease-out both; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .32s cubic-bezier(.2,.7,.2,1) both; }
 
-
-.figma-custom-code-fragment {
-  display: contents;
-}
-
+.figma-custom-code-fragment { display: contents; }
 .figma-bypass-link {
-  position: fixed;
-  top: 8px;
-  left: 8px;
-  z-index: 2147483647;
-  transform: translateY(-150%);
-  border-radius: 6px;
-  background: #111827;
-  color: #fff;
-  padding: 8px 12px;
-  font: 600 14px/1.2 system-ui, sans-serif;
+  position: fixed; top: 8px; left: 8px; z-index: 2147483647;
+  transform: translateY(-150%); border-radius: 8px; background: #1b2927;
+  color: #fff; padding: 10px 14px; font: 600 14px/1.2 system-ui, sans-serif;
   text-decoration: none;
 }
+.figma-bypass-link:focus { transform: translateY(0); }
 
-.figma-bypass-link:focus {
-  transform: translateY(0);
+.btn-grad {
+  background: #286454;
+  box-shadow: 0 8px 22px -12px rgba(40, 100, 84, .55);
+  transition: transform .2s, box-shadow .2s, background .2s;
 }
-
-.btn-grad { background: #b9522f; box-shadow: 0 8px 24px -10px rgba(185, 82, 47, 0.6); transition: transform .2s, box-shadow .2s, background .2s; }
-.btn-grad:hover { background: #a24527; transform: translateY(-1px); }
-.text-grad { color: #b9522f; font-style: italic; }
-.glass { background: rgba(255, 253, 249, 0.82); border: 1px solid rgba(22, 33, 58, 0.08); backdrop-filter: blur(16px); }
-.mesh { background: radial-gradient(700px 360px at 10% 0%, rgba(185, 82, 47, 0.10), transparent 70%), radial-gradient(600px 360px at 95% 10%, rgba(160, 122, 44, 0.12), transparent 70%); }
+.btn-grad:hover { background: #204f43; transform: translateY(-1px); box-shadow: 0 12px 28px -12px rgba(40, 100, 84, .6); }
+.btn-grad:disabled { cursor: not-allowed; transform: none; box-shadow: none; }
+.text-grad { color: #286454; font-style: italic; }
+.glass { background: rgba(255,255,255,.86); border: 1px solid rgba(27,41,39,.08); backdrop-filter: blur(16px); }
+.mesh { background: radial-gradient(700px 360px at 10% 0%, rgba(40,100,84,.08), transparent 70%), radial-gradient(600px 360px at 95% 10%, rgba(162,123,69,.08), transparent 70%); }
 .grid-bg { display: none; }
+
+::selection { background: #286454; color: #fff; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #cbd6cf; border-radius: 999px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@media (max-width: 640px) {
+  .btn-grad:hover { transform: none; }
+  input, select, textarea { font-size: 16px; }
+}
