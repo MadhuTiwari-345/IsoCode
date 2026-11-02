@@ -25,8 +25,8 @@ export const Leads: CollectionConfig = {
         if (data.phone) data.phoneNormalized = normalizePhone(data.phone)
         if (operation === 'create') {
           if (!data.leadCode) {
-            const { totalDocs } = await req.payload.count({ collection: 'leads', req, overrideAccess: true })
-            data.leadCode = `LD-${60001 + totalDocs}`
+            // Avoid countDocuments inside Payload's Mongo transaction.
+            data.leadCode = `LD-${Date.now().toString().slice(-9)}${Math.random().toString(36).slice(2, 5).toUpperCase()}`
           }
           if (!data.enquiredAt) data.enquiredAt = new Date().toISOString()
           // Duplicate detection: same normalised phone or email as an earlier lead.
