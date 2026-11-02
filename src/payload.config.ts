@@ -1,7 +1,8 @@
 import path from 'path'
-import { buildFigmaConfig } from '@payloadcms/figma'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import { en as adminLanguage } from '@payloadcms/translations/languages/en'
+import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import { Admins } from './collections/Admins'
 import { Media } from './collections/Media'
@@ -20,7 +21,18 @@ import { SourceSpend } from './collections/SourceSpend'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-export default buildFigmaConfig({
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.PAYLOAD_SECRET) {
+    throw new Error('PAYLOAD_SECRET is required in production.')
+  }
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required in production.')
+  }
+}
+
+export default buildConfig({
+  secret: process.env.PAYLOAD_SECRET || 'local-development-secret-change-before-deploy',
+  serverURL: process.env.NEXT_PUBLIC_SITE_URL,
   admin: {
     user: Admins.slug,
     constrainWidth: true,
@@ -37,9 +49,17 @@ export default buildFigmaConfig({
   },
   i18n: {
     fallbackLanguage: 'en',
-    supportedLanguages: { 'en': adminLanguage },
+    supportedLanguages: { en: adminLanguage },
   },
   collections: [Admins, Media, Folders, Tags, Users, Projects, FactSheet, SalesExecutives, VisitSlots, Leads, ChatMessages, Bookings, SourceSpend],
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.DATABASE_URL,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    },
+  }),
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -49,6 +69,4 @@ export default buildFigmaConfig({
     defaultLocale: 'en',
   },
   plugins: [mcpPlugin({})],
-  figma: {},
 })
-
