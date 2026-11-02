@@ -67,8 +67,15 @@ export default function ChatClient() {
   const input = 'w-full rounded-xl border border-line bg-card px-4 py-3 text-[15px] outline-none transition focus:border-moss'
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-9rem)] max-w-2xl flex-col px-4">
-      <div className="flex-1 space-y-5 overflow-y-auto py-8">
+    <div className="mx-auto flex h-[calc(100dvh-10rem)] min-h-[480px] max-w-2xl flex-col px-3 pb-[env(safe-area-inset-bottom)] sm:px-4">
+      <div className="mt-4 flex items-center justify-between rounded-2xl border border-line bg-white px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-ink text-sm font-semibold text-white">H</span>
+          <div><p className="text-sm font-semibold tracking-wide">HOMIQ concierge</p><p className="mt-0.5 text-[11px] text-mute">Verified project information · Ahmedabad</p></div>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-moss-soft px-3 py-1.5 text-[10px] font-medium text-moss"><span className="h-1.5 w-1.5 rounded-full bg-moss" /> Here to help</span>
+      </div>
+      <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain py-6 sm:py-8">
         {msgs.map((m, i) => (
           <div key={i} className={`rise flex ${m.role === 'buyer' ? 'justify-end' : 'justify-start'}`}>
             <p className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-3.5 text-[14px] leading-relaxed shadow-[0_2px_10px_rgba(27,41,39,0.04)] sm:px-5 sm:text-[15px] ${m.role === 'buyer' ? 'bg-moss text-white' : 'border border-line bg-card text-ink'}`}>{m.text}</p>
