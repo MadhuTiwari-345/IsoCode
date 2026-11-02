@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f6f1e9;
+  --color-card: #fffdf9;
+  --color-ink: #16213a;
+  --color-mute: #6c675e;
+  --color-line: #e5dccd;
+  --color-moss: #b9522f;
+  --color-moss-soft: #f6e4da;
+  --color-brass: #a07a2c;
+  --color-clay: #b3382a;
+  --color-subtle: #efe9de;
+  --font-sans: var(--font-inter), var(--font-deva), var(--font-guj), system-ui, sans-serif;
+  --font-serif: var(--font-display), var(--font-deva), var(--font-guj), Georgia, serif;
+}
+
+@layer base {
+  body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); }
+  ::selection { background: var(--color-moss); color: #fff; }
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 0.35s ease-out both; }
+
+
+.figma-custom-code-fragment {
+  display: contents;
+}
+
+.figma-bypass-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 2147483647;
+  transform: translateY(-150%);
+  border-radius: 6px;
+  background: #111827;
+  color: #fff;
+  padding: 8px 12px;
+  font: 600 14px/1.2 system-ui, sans-serif;
+  text-decoration: none;
+}
+
+.figma-bypass-link:focus {
+  transform: translateY(0);
+}
+
+.btn-grad { background: #b9522f; box-shadow: 0 8px 24px -10px rgba(185, 82, 47, 0.6); transition: transform .2s, box-shadow .2s, background .2s; }
+.btn-grad:hover { background: #a24527; transform: translateY(-1px); }
+.text-grad { color: #b9522f; font-style: italic; }
+.glass { background: rgba(255, 253, 249, 0.82); border: 1px solid rgba(22, 33, 58, 0.08); backdrop-filter: blur(16px); }
+.mesh { background: radial-gradient(700px 360px at 10% 0%, rgba(185, 82, 47, 0.10), transparent 70%), radial-gradient(600px 360px at 95% 10%, rgba(160, 122, 44, 0.12), transparent 70%); }
+.grid-bg { display: none; }
