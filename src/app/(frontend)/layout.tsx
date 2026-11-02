@@ -14,11 +14,11 @@ const display = Cormorant_Garamond({ subsets: ["latin"], variable: "--font-displ
 const deva = Noto_Sans_Devanagari({ subsets: ["devanagari"], variable: "--font-deva" })
 const guj = Noto_Sans_Gujarati({ subsets: ["gujarati"], variable: "--font-guj" })
 
-const defaultTitle = "Company A Homes, Ahmedabad"
+const defaultTitle = "HOMIQ | Thoughtful Homes in Ahmedabad"
 const title = makeSiteSettings.title ?? defaultTitle
 const description =
   makeSiteSettings.description ??
-  "Built with Next.js, Payload CMS, and Tailwind CSS"
+  "Explore thoughtfully designed 2 and 3 BHK residences in Ahmedabad. Ask HOMIQ in English, Hindi or Gujarati and book a site visit."
 const favicon = makeSiteSettings.icons?.icon
 const socialImage = makeSiteSettings.openGraph?.image
 const googleAnalyticsId = sanitizeHtmlAttribute(
