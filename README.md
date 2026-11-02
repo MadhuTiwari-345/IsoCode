@@ -29,83 +29,43 @@
 
 ## 🏡 About HOMIQ
 
-HOMIQ is a residential discovery and lead-management application designed around the journey from a buyer's first enquiry to a scheduled property visit.
+HOMIQ is a residential discovery and lead-management application for a developer with two live residential projects in Ahmedabad. It is designed to connect the buyer journey with the sales team's daily workflow, from the first enquiry to a site visit.
 
-The project brief describes a real estate developer with two active residential projects in Ahmedabad and a portfolio of 420 apartments across 2 BHK and 3 BHK configurations. HOMIQ brings buyer enquiries, project information, guided conversations and sales follow-up into one connected experience.
+The client brief describes 420 apartments across 2 BHK and 3 BHK configurations, with an indicative portfolio range of ₹65 lakh to ₹1.2 crore. The brief also describes 3,000 monthly leads and ₹30 lakh in monthly marketing and portal spend. Those figures are client-provided planning assumptions, not live production analytics.
 
-The goal is straightforward: help buyers get useful answers, help sales teams respond with context, and make the next step clear.
+### What the client needs to improve
 
-### Project context
+- Reduce the time between a buyer enquiry and the first useful response.
+- Keep leads from portals, social ads, the website and hoarding calls in one inbox.
+- Capture buyer needs, language, source and consent.
+- Offer real visit availability and prevent overbooking.
+- Give a named salesperson the buyer's context and conversation history.
+- Measure response time, visit conversion, attendance and source-level cost.
 
-| Brief detail | Supplied context |
-| --- | --- |
-| Location | Ahmedabad, Gujarat |
-| Residential projects | 2 |
-| Apartment portfolio | 420 homes |
-| Configurations | 2 BHK and 3 BHK |
-| Overall indicative range | ₹65 lakh to ₹1.2 crore |
-| Enquiry sources | Property portals, social ads, website and hoardings |
-| Languages | English, Hindi and Gujarati |
+### Current implementation status
 
-The price range above is portfolio-level context from the brief. It is not a quote for a particular project or apartment. Project names, addresses, RERA registration numbers, live inventory and unit-level prices must come from verified sales data. They are not guessed or fabricated in this repository.
+This status is based on a review of the repository's `main` branch. A screen rendering successfully is not proof that its complete workflow has been tested in production.
 
-## ✨ Product capabilities
+| Requirement | Current implementation | Assessment |
+| --- | --- | --- |
+| Public residential discovery | Home, project list and project detail pages | Implemented with launch placeholders when project records are absent |
+| Unified lead records | Payload Leads collection with source, stage, contact and ownership fields | Implemented for records created through the application; external portal and hoarding ingestion is not connected |
+| Duplicate checks | Normalized phone and email lookup on lead creation | Basic check implemented; concurrent duplicate submissions need stronger protection |
+| English, Hindi and Gujarati chat | Language selection and translated prompts | Implemented as guided chat |
+| Answers from an approved fact sheet | Topic detection and lookup in Payload Fact Sheet | Basic deterministic lookup, not a connected generative AI agent |
+| Budget and needs capture | BHK and budget choices update the lead | Implemented as a guided flow |
+| Human handoff | Executive selection, lead summary and chat transcript | Partial; unanswered questions are flagged, but automatic assignment and notification need completion |
+| Real free visit slots | Slot list checks current bookings and capacity | Partial; the current post-create capacity check is not atomic under concurrent requests |
+| Location pin | Visit confirmation page reads project coordinates | Depends on verified project address and coordinates being entered |
+| Reminders at 1 day and 2 hours | Reminder timestamps are stored on booking records | Not delivered; a scheduler and messaging provider are still required |
+| Sales dashboard | Response, visit, show-up and source cost calculations | UI exists; current response-time data is unreliable because buyer registration sets it to zero |
+| Admin fact sheet and slot editor | Payload collections are available in the admin | Collection-level editing exists; a tailored sales-facing editor and full workflow need validation |
+| Sample client records | No occurrences of the three supplied lead IDs were found in the repository source | Seed data still needs to be added and verified |
+| WhatsApp | Consent field exists | No live WhatsApp Business integration |
 
-### Buyer experience
+**Important distinction:** the current chat is a deterministic guided assistant. It detects supported topics and retrieves approved fact-sheet entries. The repository does not currently contain a configured LLM provider or a tool-calling AI agent. This is safer than inventing answers, but it does not yet satisfy the full AI-agent requirement as written.
 
-- **Residential discovery:** A public-facing experience for exploring the developer's residential offering.
-- **Guided buyer chat:** A conversational flow designed to understand configuration, budget and buyer requirements.
-- **Language choices:** English, Hindi and Gujarati are part of the intended buyer journey.
-- **Lead capture:** Buyer details and enquiry context can be collected for sales follow-up.
-- **Visit planning:** The product includes visit-slot and booking concepts to support scheduling.
-
-### Sales workspace
-
-- **Lead inbox:** Bring enquiries from different sources into a shared workflow.
-- **Lead context:** Keep source, preferences, stage and ownership alongside the buyer record.
-- **Duplicate awareness:** Identify possible repeat enquiries instead of treating every submission as unrelated.
-- **Sales handoff:** Preserve buyer context so a sales executive can continue the conversation.
-- **Operational overview:** Organize lead and visit information for sales-team review.
-- **Fact management:** Keep project information in a managed source rather than relying on invented AI answers.
-
-### Product principles
-
-| Principle | How HOMIQ approaches it |
-| --- | --- |
-| Accuracy first | The assistant should use approved project facts and escalate unanswered questions. |
-| Human support | Buyers can request a sales representative instead of continuing with automation. |
-| Responsible pricing | The assistant must not promise a final price or discount. |
-| Consent | Buyer contact and messaging preferences must be handled transparently. |
-| Clear operations | Lead ownership and visit information should remain available to the sales team. |
-
-> **Integration status:** The repository includes application workflows and data structures for leads, chat, sales users, visit slots and bookings. A stored reminder timestamp does not itself send a reminder. Live WhatsApp delivery, outbound messaging, payment collection and allotment workflows are not claimed as active integrations.
-
-## 🧭 How the workflow fits together
-
-```text
-Buyer enquiry
-     |
-     v
-Lead capture and source context
-     |
-     v
-Guided conversation
-     |
-     +---- Approved fact available ----> Answer from project information
-     |
-     +---- Fact missing / human requested -> Sales follow-up
-     |
-     v
-Buyer requirements and preferences
-     |
-     v
-Visit slot selection
-     |
-     v
-Booking record and sales coordination
-```
-
-This is the intended product workflow. External message delivery and reminder execution require separately configured services.
+The project catalogue includes clearly labelled launch placeholders for Project 01 and Project 02. They are not verified project identities. Real project names, addresses, map coordinates, RERA registration numbers, inventory and project-specific prices must be supplied by the client before public launch. Do not replace these placeholders with invented claims.
 
 ## 🎨 Visual identity
 
@@ -134,6 +94,118 @@ The design prioritizes readable hierarchy, generous spacing, responsive layouts 
 | Styling | Tailwind CSS 4 | Responsive styling |
 | Hosting | Vercel | Web deployment |
 
+## 🏗️ Architecture
+
+HOMIQ is currently a Next.js application with Payload CMS as its application data layer and MongoDB as its database. The buyer interface and staff workspace use the same application and data model.
+
+### System architecture
+
+```mermaid
+flowchart TB
+    Buyer[Home buyer on mobile or desktop]
+    Staff[Sales executive or sales head]
+    Web[Next.js application on Vercel]
+    Public[Public pages and buyer chat]
+    Workspace[Protected sales workspace]
+    Actions[Next.js server actions]
+    Payload[Payload CMS and access rules]
+    DB[(MongoDB)]
+    Admin[Payload Admin]
+    Facts[Projects and approved fact sheet]
+    Leads[Leads and chat messages]
+    Visits[Visit slots and bookings]
+    Reports[Source spend and reporting data]
+
+    Buyer --> Web
+    Staff --> Web
+    Web --> Public
+    Web --> Workspace
+    Public --> Actions
+    Workspace --> Actions
+    Actions --> Payload
+    Admin --> Payload
+    Payload --> DB
+    DB --- Facts
+    DB --- Leads
+    DB --- Visits
+    DB --- Reports
+```
+
+### Main application layers
+
+| Layer | Responsibility | Main code locations |
+| --- | --- | --- |
+| Presentation | Public pages, buyer chat, visit confirmation and staff screens | `src/app/(frontend)`, `src/components` |
+| Buyer workflow | Language selection, registration, qualification, fact lookup, handoff and booking actions | `src/app/(frontend)/chat/actions.ts` |
+| Authentication | Buyer and staff application sessions | `src/lib/app-auth.ts`, `src/collections/Users.ts` |
+| Business data | Leads, projects, facts, staff, slots, bookings and spend | `src/collections` |
+| CMS and access | Payload configuration, collection permissions and admin interface | `src/payload.config.ts`, `src/collections` |
+| Persistence | MongoDB through Payload's Mongoose adapter | `src/payload.config.ts` |
+| Hosting | Next.js deployment and environment configuration | Vercel |
+
+### Buyer chat sequence
+
+```mermaid
+sequenceDiagram
+    actor Buyer
+    participant UI as Chat interface
+    participant SA as Server actions
+    participant DB as Payload and MongoDB
+    Buyer->>UI: Select English, Hindi or Gujarati
+    UI->>Buyer: Ask for name, phone and consent
+    Buyer->>UI: Submit registration
+    UI->>SA: registerBuyer
+    SA->>DB: Create lead with source and consent
+    DB-->>SA: Lead ID
+    SA-->>UI: Ask for BHK preference
+    Buyer->>UI: Select BHK and budget
+    UI->>SA: chooseOption
+    SA->>DB: Read projects and approved facts
+    DB-->>SA: Matching project facts
+    SA-->>UI: Show guided answer and next actions
+    Buyer->>UI: Ask a question or request a person
+    UI->>SA: askQuestion or handoff action
+    SA->>DB: Read fact sheet or flag and assign lead
+    SA-->>UI: Answer from stored facts or request human follow-up
+```
+
+This sequence describes the current guided implementation. It does not represent a live LLM tool call. Unknown topics are flagged for review rather than answered from general model knowledge.
+
+### Site visit booking sequence
+
+```mermaid
+sequenceDiagram
+    actor Buyer
+    participant UI as Chat interface
+    participant SA as Server actions
+    participant DB as Payload and MongoDB
+    Buyer->>UI: Ask to book a visit
+    UI->>SA: Request open slots for selected project
+    SA->>DB: Read future open slots
+    SA->>DB: Count active bookings per slot
+    SA-->>UI: Return slots with remaining capacity
+    Buyer->>UI: Select a slot
+    UI->>SA: bookVisit
+    SA->>DB: Create booking
+    DB->>DB: Recheck capacity after insert
+    SA->>DB: Save summary and salesperson assignment
+    SA-->>UI: Return booking confirmation
+```
+
+**Booking reliability warning:** the current capacity guard runs after a booking is inserted. Two simultaneous requests can both observe spare capacity before either post-insert check completes. This is not an atomic reservation. Do not describe the current implementation as guaranteeing zero double bookings until slot allocation is moved to an atomic database operation or a serialized reservation mechanism and concurrency tests pass.
+
+### Data flow at a glance
+
+1. A buyer enters through the website and selects a chat language.
+2. The buyer submits contact information and DPDP consent.
+3. The server creates a lead and records the source tag.
+4. The guided chat collects configuration and budget preferences.
+5. The assistant retrieves supported answers from the selected project's fact sheet.
+6. A buyer can request a human at any time. The lead can be assigned to a sales executive and flagged for review.
+7. The booking flow lists future slots and creates a booking record.
+8. The visit confirmation page displays the booking, project map and stored reminder times.
+9. Sales users review leads, chat history, bookings and source metrics in the staff workspace.
+
 ## 🗃️ Data model
 
 The Payload configuration registers collections for the main application concepts:
@@ -148,6 +220,123 @@ The Payload configuration registers collections for the main application concept
 - **Source Spend:** Marketing spend inputs for source-level reporting.
 - **Users and Admins:** Application users and administrative access.
 - **Media, Folders and Tags:** Content organization.
+
+## 🧩 Screen map and wireframes
+
+The experience is organized around two entry points: a buyer-facing website and a protected sales workspace. The wireframes below are structural sketches, not pixel-perfect screenshots.
+
+### Buyer-facing journey
+
+| Screen | Purpose |
+| --- | --- |
+| Home | Introduce the residential offering and start a conversation |
+| Residences | Browse the two project records |
+| Project overview | Review approved project facts and continue to chat |
+| Concierge chat | Select language, register, share needs, ask questions and book |
+| Visit confirmation | Review date, time, location pin, advisor and reminder schedule |
+
+### Sales workspace
+
+| Screen | Purpose |
+| --- | --- |
+| Sales overview | Review response, visit, attendance and source performance |
+| Lead inbox | Filter leads by source, duplicate status and review flag |
+| Lead detail | Review buyer profile, duplicate links, handoff summary and chat history |
+| Site visits | Review bookings and mark attendance, no-show or cancellation |
+
+The Payload admin provides collection editors for project records, the fact sheet, visit slots, sales executives and source spend. These editors are part of the CMS administration layer rather than a separate custom sales screen.
+
+### Wireframe: buyer discovery
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ HOMIQ                                      Residences  FAQs   │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Ahmedabad · 2 and 3 BHK residences                          │
+│                                                              │
+│  Homes made for the way you live.                             │
+│  Ask a question in the language you think in.                 │
+│                                                              │
+│  [ English ] [ हिन्दी ] [ ગુજરાતી ] [ Book a visit ]          │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  Current projects                                             │
+│  ┌────────────────────────┐  ┌────────────────────────┐       │
+│  │ Project 01             │  │ Project 02             │       │
+│  │ Verified image/details │  │ Verified image/details │       │
+│  │ Explore overview       │  │ Explore overview       │       │
+│  └────────────────────────┘  └────────────────────────┘       │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Wireframe: guided chat and booking
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ HOMIQ concierge                    Verified project facts     │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  HOMIQ: Welcome. Which language would you prefer?             │
+│  [ English ] [ हिन्दी ] [ ગુજરાતી ]                            │
+│                                                              │
+│  HOMIQ: First, tell us your name and phone number.             │
+│  [ Name __________________________________ ]                  │
+│  [ Phone _________________________________ ]                  │
+│  [ ] I agree to be contacted about this enquiry               │
+│  [ ] I opt in to WhatsApp updates                             │
+│  [ Continue ]                                                  │
+│                                                              │
+│  HOMIQ: Are you looking for a 2 BHK or 3 BHK?                 │
+│  [ 2 BHK ] [ 3 BHK ]                                          │
+│                                                              │
+│  HOMIQ: What budget range should we consider?                 │
+│  [ Range A ] [ Range B ] [ Range C ]                           │
+│                                                              │
+│  Available visit times                                         │
+│  [ Slot 1 ] [ Slot 2 ] [ Slot 3 ]                              │
+│                                                              │
+│  [ Type a question __________________________ ] [ Send ]      │
+│  Talk to a person                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Wireframe: sales workspace
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ HOMIQ Sales                         Overview  Leads  Visits   │
+├───────────────┬──────────────────────────────────────────────┤
+│ Navigation    │ Lead performance                              │
+│               │                                                │
+│ Overview      │ [Response time] [Unreached] [Visit rate]       │
+│ Lead inbox    │ [Show-up rate] [Cost per visit]                │
+│ Site visits   │                                                │
+│ Fact sheet    │ Source performance                             │
+│ Visit slots   │ ┌──────────────────────────────────────────┐   │
+│               │ │ Source | Leads | Visits | Spend | Cost  │   │
+│               │ └──────────────────────────────────────────┘   │
+│               │                                                │
+│               │ Flagged chats       Waiting for first contact  │
+└───────────────┴──────────────────────────────────────────────┘
+```
+
+### Wireframe: lead detail and human handoff
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ Lead LD-XXXXX                         Assigned to [Executive]  │
+│ Buyer name                                                     │
+├───────────────────────────────┬──────────────────────────────┤
+│ Buyer details                 │ Conversation history          │
+│ Source and project            │                                │
+│ BHK and budget                │ Buyer: ...                     │
+│ Consent and response time     │ HOMIQ: ...                     │
+│                               │ Buyer: ...                     │
+│ Handoff summary               │ HOMIQ: ...                     │
+│ Visit booking                 │                                │
+└───────────────────────────────┴──────────────────────────────┘
+```
 
 ## 🚀 Getting started
 
