@@ -162,6 +162,8 @@ Priority next steps:
 
 The repository contains a functioning application structure, buyer registration and guided chat, Payload collections, staff screens, source dashboard and booking flow. However, a visible screen is not proof that the complete flow is production-ready.
 
+Unit tests now cover the pure slot-capacity calculation (active booking statuses, remaining capacity, invalid capacity and cancelled/no-show release). They do not simulate concurrent database writes.
+
 Not yet verified as complete:
 - Atomic booking reservation under concurrent requests.
 - Race-safe duplicate creation.
