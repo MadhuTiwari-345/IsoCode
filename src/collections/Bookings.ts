@@ -65,5 +65,7 @@ export const Bookings: CollectionConfig = {
     { name: 'status', type: 'select', defaultValue: 'booked', index: true, options: [{ label: 'Booked', value: 'booked' }, { label: 'Attended', value: 'attended' }, { label: 'No-show', value: 'no_show' }, { label: 'Cancelled', value: 'cancelled' }] },
     { name: 'reminderDayBefore', type: 'date' },
     { name: 'reminderTwoHours', type: 'date' },
+    { name: 'reminderDayBeforeSentAt', type: 'date', admin: { readOnly: true } },
+    { name: 'reminderTwoHoursSentAt', type: 'date', admin: { readOnly: true } },
   ],
 }
