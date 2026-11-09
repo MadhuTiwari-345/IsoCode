@@ -27,7 +27,7 @@ export async function loginAction(_: AuthState, form: FormData): Promise<AuthSta
 
 export async function signupAction(_: AuthState, form: FormData): Promise<AuthState> {
   const name = str(form.get('name'), 80)
-  const email = str(form.get('email')).toLowerCase()
+  const email = str(form.get('email')).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g, '').toLowerCase()
   const phone = str(form.get('phone'), 20).replace(/[^\d+ ]/g, '')
   const password = String(form.get('password') ?? '')
   const keep = { name, email }
@@ -53,6 +53,7 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
     if (emailError) return { error: 'That email address was rejected. Check the spelling and try another address if it is already registered.', ...keep }
     if (fieldErrors.length) return { error: fieldErrors[0].message || 'Please check the highlighted details and try again.', ...keep }
     return { error: 'We could not create your account. Please try again in a moment.', ...keep }
+  }
   try { await appAuth.login(email, password) } catch { return { error: 'Account created. Please sign in.', ...keep } }
   redirect(safeNext(form.get('next'), '/account'))
 }
