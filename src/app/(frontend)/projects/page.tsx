@@ -15,7 +15,7 @@ export default async function ProjectsPage() {
         <div className="mt-10 max-w-3xl">
           <p className="text-xs uppercase tracking-[0.3em] text-moss">The HOMIQ collection · Ahmedabad</p>
           <h1 className="mt-4 font-serif text-6xl font-medium leading-[0.95] tracking-tight md:text-7xl">Find a place that feels like yours.</h1>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-mute">Two residential developments. Thoughtful 2 and 3 BHK homes. Explore the overview, then speak with an advisor for verified project-specific details.</p>
+          <p className="mt-6 max-w-2xl text-base leading-relaxed text-mute">Two residential developments. Thoughtful 2 and 3 BHK homes. This prototype uses only the interview brief; speak with an advisor for project-specific details that have not been supplied.</p>
           <p className="mt-4 font-serif text-2xl text-ink">₹65 lakh – ₹1.2 crore <span className="font-sans text-xs text-mute">indicative portfolio range, not a project quote</span></p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
