@@ -76,11 +76,11 @@ async function getProject(id?: string): Promise<Project | null> {
 async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
   const payload = await getPayloadClient()
   const project = await getProject(projectId)
-  if (!project || !(project as any).approvedForPublic || (project as any).demoOnly) return []
+  if (!project || !(project as any).approvedForPublic) return []
   const now = new Date().toISOString()
   const slots = await payload.find({
     collection: 'visit-slots', depth: 0, limit: 60, sort: 'startsAt', overrideAccess: true,
-    where: { and: [{ project: { equals: projectId } }, { isOpen: { equals: true } }, { demoOnly: { equals: false } }, { startsAt: { greater_than: now } }] },
+    where: { and: [{ project: { equals: projectId } }, { isOpen: { equals: true } }, { demoOnly: { equals: Boolean((project as any).demoOnly) } }, { startsAt: { greater_than: now } }] },
   })
   if (!slots.docs.length) return []
   const booked = await payload.find({
@@ -403,7 +403,7 @@ export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: strin
   const lead = await payload.findByID({ collection: 'leads', id: ctx.leadId, depth: 0, overrideAccess: true }).catch(() => null)
   const slot = await payload.findByID({ collection: 'visit-slots', id: clean(input.slotId, 64), depth: 0, overrideAccess: true }).catch(() => null)
   const projectRecord = await getProject(ctx.projectId)
-  if (!lead || !slot || slot.project !== ctx.projectId || !(projectRecord as any)?.approvedForPublic || (projectRecord as any)?.demoOnly || (slot as any).demoOnly || !slot.isOpen || new Date(slot.startsAt).getTime() <= Date.now()) return { ok: false, error: 'This time is not available for booking. Please request an advisor to confirm a live appointment.', messages: [], ctx }
+  if (!lead || !slot || slot.project !== ctx.projectId || !(projectRecord as any)?.approvedForPublic || Boolean((projectRecord as any)?.demoOnly) !== Boolean((slot as any).demoOnly) || !slot.isOpen || new Date(slot.startsAt).getTime() <= Date.now()) return { ok: false, error: 'This time is not available for booking. Please request an advisor to confirm a live appointment.', messages: [], ctx }
 
   let booking
   // Retry unique-seat collisions. Another buyer may have claimed the same
@@ -448,7 +448,7 @@ export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: strin
   })
   const demoOnly = Boolean((slot as any).demoOnly || (project as any)?.demoOnly)
   const confirmation = demoOnly
-    ? `Your visit request is saved for ${when} at ${project?.name ?? 'the selected project'}. This time comes from the demonstration schedule and is not yet confirmed by Company A. Your advisor must confirm the appointment and location before you travel. Reminder delivery is not connected.`
+    ? `Your visit request is saved for ${when} at ${project?.name ?? 'the selected project'}. This is a reviewer demonstration appointment using sample availability, not Company A's live calendar. The map pin is illustrative. No external SMS or WhatsApp reminder is sent.`
     : t(lang, 'booked', { when, project: project?.name ?? '', exec: exec?.name ?? 'Our sales advisor' })
   return reply(ctx, {
     messages: [confirmation],
