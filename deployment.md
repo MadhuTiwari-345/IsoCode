@@ -1,199 +1,188 @@
-# HOMIQ deployment and reviewer guide
+# HOMIQ — deployment and verification
 
-**GitHub:** https://github.com/MadhuTiwari-345/IsoCode  
-**Production:** https://isocode-homiq.vercel.app
+**Repository:** https://github.com/MadhuTiwari-345/IsoCode  
+**Production:** https://isocode-homiq.vercel.app  
+**Default branch:** `main`
 
-## Stack
+This guide separates verified deployment checks from setup that still requires private credentials or client-approved information. Never commit secrets or reviewer passwords.
 
-- Node.js 24.x and pnpm 10.28.0
-- Next.js 16, React 19, TypeScript 6
+## 1. Stack and requirements
+
+- Node.js 24.x
+- pnpm 10.28.0
+- Next.js 16 / React 19 / TypeScript 6
 - Payload CMS 4 with MongoDB
-- Gemini API for constrained, server-side fact-sheet answers
-- Vercel hosting
-- GitHub Actions for CI and five-minute mock reminder polling
+- Gemini API for constrained fact-sheet answers
+- Vercel hosting and GitHub Actions
 
-## 1. Run locally
+## 2. Run locally
 
-1. Clone the repository:
+```bash
+git clone https://github.com/MadhuTiwari-345/IsoCode.git
+cd IsoCode
+corepack enable
+corepack prepare pnpm@10.28.0 --activate
+pnpm install --frozen-lockfile
+```
 
-   ```bash
-   git clone https://github.com/MadhuTiwari-345/IsoCode.git
-   cd IsoCode
-   ```
+Create an untracked `.env.local` with your own development credentials:
 
-2. Install the pinned package manager and dependencies:
+```dotenv
+DATABASE_URL=
+PAYLOAD_SECRET=
+GEMINI_API_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+CRON_SECRET=
+```
 
-   ```bash
-   corepack enable
-   corepack prepare pnpm@10.28.0 --activate
-   pnpm install --frozen-lockfile
-   ```
+Generate Payload artifacts and start:
 
-3. Create `.env.local` in the repository root. Supply your own development credentials:
+```bash
+pnpm generate:types
+pnpm generate:importmap
+pnpm dev
+```
 
-   ```dotenv
-   DATABASE_URL=
-   PAYLOAD_SECRET=
-   GEMINI_API_KEY=
-   NEXT_PUBLIC_SITE_URL=http://localhost:3000
-   CRON_SECRET=
-   ```
+Local URLs:
 
-   Never commit this file. The Gemini key and database credentials must remain server-side.
+- Buyer site: http://localhost:3000
+- Chat: http://localhost:3000/chat
+- Login: http://localhost:3000/login
+- Payload admin: http://localhost:3000/admin
 
-4. Generate Payload artifacts:
+Create the first Payload administrator through the admin initialization flow. Public sign-up is buyer-only; staff roles must be provisioned by an administrator.
 
-   ```bash
-   pnpm generate:types
-   pnpm generate:importmap
-   ```
+## 3. Environment variables
 
-5. Start the application:
+Configure these names in Vercel (values are private and must never be added to this file):
 
-   ```bash
-   pnpm dev
-   ```
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | MongoDB connection string |
+| `PAYLOAD_SECRET` | Payload auth/session secret |
+| `GEMINI_API_KEY` | Server-side Gemini API key |
+| `NEXT_PUBLIC_SITE_URL` | Canonical application URL |
+| `CRON_SECRET` | Bearer authentication for the reminder endpoint |
 
-6. Open:
-   - Buyer website: http://localhost:3000
-   - Buyer chat: http://localhost:3000/chat
-   - Sign in: http://localhost:3000/login
-   - Payload admin: http://localhost:3000/admin
+After rotating `GEMINI_API_KEY`, save the replacement in Vercel and redeploy Production. The running deployment does not inherit changed environment variables until redeployed.
 
-7. Create the first Payload administrator using the Payload initialization flow. The Payload administrator manages project records, staff records and reviewer account provisioning. Website accounts cannot grant themselves staff roles.
+## 4. Demo data
 
-## 2. Seed the interview sample data
-
-The seed script expects two project records already created in Payload and sorted as Project 01 and Project 02. It marks those records as demo-only, seeds only facts stated in the brief, and creates/upserts the three sample leads:
-
-- LD-58210 — Hardik Patel
-- LD-58211 — Nidhi Shah
-- LD-58224 — Kavita Joshi
-
-The lead phone values are deliberately non-contactable placeholders and consent is false. The seed also creates future simulated visit slots, explicitly marked demo-only. These are not a real Company A calendar.
-
-Run only against a disposable demo database or after reviewing its existing records:
+The seed script expects Project 01 and Project 02 records to exist. It seeds the three leads supplied in the original brief, a historical example booking, approved brief-backed facts and future **demo-only** visit slots.
 
 ```bash
 pnpm seed:demo
 ```
 
-The seed does not import all 18 rows from the separately supplied PDF. Do not describe the complete 18-row dataset as imported.
+Run this only against a disposable demo database or after reviewing existing records. It does not import the separate 18-row PDF dataset. Placeholder contact values are not contactable and have no consent. Demo slots are not Company A's real calendar.
 
-## 3. Provision reviewer accounts
+## 5. Reviewer accounts
 
-The app supports three website roles: `buyer`, `executive`, and `head`. Public sign-up creates buyer accounts only. Staff roles are assigned by an administrator.
+No default reviewer credentials are stored in the repository. Create one account per role using private, untracked environment variables in the shell connected to the database reviewers will use:
 
-A provisioning script is included. It creates or resets one account for each role using the Payload authentication API, so Payload hashes passwords using its normal auth implementation.
-
-Set the following variables in a **private local shell or untracked local env file** connected to the database you intend reviewers to use:
-
-| Variable | Purpose |
+| Variable | Role |
 | --- | --- |
-| `HOMIQ_REVIEWER_BUYER_EMAIL` | Reviewer buyer email |
-| `HOMIQ_REVIEWER_BUYER_PASSWORD` | Reviewer buyer password (14+ characters) |
-| `HOMIQ_REVIEWER_EXECUTIVE_EMAIL` | Reviewer executive email |
-| `HOMIQ_REVIEWER_EXECUTIVE_PASSWORD` | Reviewer executive password (14+ characters) |
-| `HOMIQ_REVIEWER_HEAD_EMAIL` | Reviewer sales-head email |
-| `HOMIQ_REVIEWER_HEAD_PASSWORD` | Reviewer sales-head password (14+ characters) |
+| `HOMIQ_REVIEWER_BUYER_EMAIL` / `HOMIQ_REVIEWER_BUYER_PASSWORD` | Buyer |
+| `HOMIQ_REVIEWER_EXECUTIVE_EMAIL` / `HOMIQ_REVIEWER_EXECUTIVE_PASSWORD` | Sales executive |
+| `HOMIQ_REVIEWER_HEAD_EMAIL` / `HOMIQ_REVIEWER_HEAD_PASSWORD` | Sales head |
 
-Optional display-name variables:
+Passwords must be at least 14 characters. Optional display-name variables are `HOMIQ_REVIEWER_BUYER_NAME`, `HOMIQ_REVIEWER_EXECUTIVE_NAME` and `HOMIQ_REVIEWER_HEAD_NAME`.
 
-- `HOMIQ_REVIEWER_BUYER_NAME`
-- `HOMIQ_REVIEWER_EXECUTIVE_NAME`
-- `HOMIQ_REVIEWER_HEAD_NAME`
-
-Then run:
+Run:
 
 ```bash
 pnpm provision:reviewers
 ```
 
-The script is idempotent by email. If an account already exists, it updates the name, role and password to the supplied values. **This intentionally resets the password for matching emails.** It prints account emails and roles, never passwords. Share the generated credentials with the reviewer only through a private channel. Do not place passwords in README, deployment docs, GitHub issues, source code or chat.
+The script creates or resets accounts by email. **It resets the password and role for an existing matching email.** Use dedicated reviewer addresses, not an existing personal account. Share passwords only through a private channel.
 
-The connected GitHub/Vercel tools cannot safely create reviewer credentials without the intended email addresses and passwords. No shared credentials have been invented or embedded in the repository.
+Login routes:
 
-## 4. Run tests
+- Buyer: `/login`
+- Executive: `/login?next=/staff`
+- Sales head: `/login?next=/staff`
+
+## 6. CI and production deployment
+
+GitHub Actions workflow `.github/workflows/ci.yml` runs unit tests, Payload type generation and TypeScript validation on pushes/PRs to `main`.
 
 ```bash
 pnpm test
+pnpm generate:types
 pnpm exec tsc --noEmit
 ```
 
-A GitHub Actions workflow at `.github/workflows/ci.yml` runs these checks on pushes and pull requests to `main`. Confirm the workflow run is green before treating the latest commit as verified. Unit tests and type checking do not replace browser-based end-to-end tests or a concurrency test against the target MongoDB database.
+Vercel is connected to `MadhuTiwari-345/IsoCode` and deploys `main). Check the [Vercel deployment history](https://vercel.com/mt1499961-2971s-projects/isocode-homiq) after each change.
 
-## 5. Vercel deployment
+## 7. Reminder worker
 
-Connect `MadhuTiwari-345/IsoCode` to the Vercel project `isocode-homiq`, using the repository root and Node.js 24.x.
-
-Required Vercel environment variable names:
-
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | MongoDB connection |
-| `PAYLOAD_SECRET` | Payload authentication/session signing |
-| `GEMINI_API_KEY` | Server-side Gemini API key |
-| `NEXT_PUBLIC_SITE_URL` | Canonical application URL |
-| `CRON_SECRET` | Bearer secret for reminder endpoint |
-
-Configure the variables for Production and Preview as appropriate. Never include their values in this document. After changing `GEMINI_API_KEY`, trigger a new Production deployment so the new server-side environment value is applied to the running functions. The current Vercel project has an entry for this variable; confirm the rotated key was saved there without revealing it.
-
-The latest previously verified successful production build was commit `306749bef0cb10e8af6d853999e7a3d360ef59a5a`. Subsequent README, reviewer-provisioning and CI changes need their own green CI result and successful Vercel deployment.
-
-## 6. Reminder worker
-
-The endpoint is:
+Endpoint:
 
 ```
 GET /api/cron/reminders
 Authorization: Bearer <CRON_SECRET>
 ```
 
-The endpoint creates idempotent reminder audit records and checks buyer consent and opt-out status. Delivery is **mock-only**; it does not send WhatsApp or SMS.
+GitHub Actions workflow `.github/workflows/homiq-reminders.yml` polls every five minutes and supports manual dispatch. Repository secrets:
 
-The workflow `.github/workflows/homiq-reminders.yml` runs every five minutes and can also be started manually. Add these two repository Actions secrets at:
-
-https://github.com/MadhuTiwari-345/IsoCode/settings/secrets/actions
-
-| GitHub Actions secret | Value to configure |
+| Secret name | Value |
 | --- | --- |
 | `HOMIQ_BASE_URL` | `https://isocode-homiq.vercel.app` |
-| `CRON_SECRET` | The exact same secret value configured in Vercel |
+| `CRON_SECRET` | Exactly the same value as Vercel's `CRON_SECRET` |
 
-The GitHub integration available to this project cannot write repository Actions secrets. A repository administrator must add them in GitHub. Then select **Actions → HOMIQ reminder worker → Run workflow** and verify a green run. Scheduled executions may be delayed by GitHub's scheduler. Until the secrets are present and a run succeeds, reminder scheduling is configured but not verified.
+Configure them at https://github.com/MadhuTiwari-345/IsoCode/settings/secrets/actions. Run **Actions → HOMIQ reminder worker → Run workflow**.
 
-## 7. Demo login and reviewer handoff
+The last verified manual run authenticated successfully and returned `ok: true` with `processed: 0`. This proves endpoint authentication/execution only; it did not exercise a due reminder. Reminder delivery is **mock-only**. No SMS or WhatsApp provider is connected.
 
-There are no default demo passwords. Provision the three accounts using section 3, then privately share:
+## 8. Verification status
 
-- Buyer: `/login`, role `buyer`
-- Sales executive: `/login?next=/staff`, role `executive`
-- Sales head: `/login?next=/staff`, role `head`
+Status checked against the current repository and connected service records on 9 November 2026.
 
-The login page redirects authenticated staff to the staff workspace. The executive account is for lead review and assignment workflows. The head account is for sales-head controls, including fact-sheet and visit-slot management.
+| Check | Status | Evidence / next action |
+| --- | --- | --- |
+| Only `main` branch remains | **Verified** | GitHub branch API returned only `main`; obsolete `standard-payload-postgres` is absent |
+| Latest CI | **Passed** | [Run 42618682477](https://github.com/MadhuTiwari-345/IsoCode/actions/runs/42618682477) |
+| Latest Vercel production deployment | **Ready** | Commit `aa93b4e19625c3ae54bb519ee1722b7dffe441c6) |
+| Reminder endpoint auth | **Passed** | Authenticated manual workflow returned `ok: true` |
+| Due reminder processing | **Not exercised in last run** | Last run had zero due jobs; test with due demo records on staging |
+| Reviewer accounts | **Not provisioned** | Run section 5 using dedicated private credentials |
+| Buyer/executive/head login and journeys | **Not E2E verified** | Test on staging with the three accounts |
+| Booking index uniqueness | **Not verified** | Atlas index listing exposes the key/name but not the unique option; inspect `listIndexes()` with a MongoDB client before claiming this guard is active |
+| Concurrent booking test | **Not run against staging** | Run simultaneous claims against a disposable MongoDB database after confirming the unique index |
+| Consent/opt-out reminder cases | **Partially verified** | Existing demo reminder audit records show no-consent skips; test both paths with due staging records |
+| Dashboard metric reconciliation | **Not verified** | Add known test spend and attendance, then compare displayed totals to source records |
+| Client-approved RERA/location/inventory/calendar data | **Unavailable** | Client must supply verified records before public project pages or real appointments |
+| WhatsApp/SMS delivery | **Not connected** | Requires provider account, approved templates, opt-in and delivery callbacks |
+| Additional 18-row PDF dataset | **Not imported** | Reconcile its fields and consent before importing; current seed is the original three-row brief |
 
-## 8. Data, safety and honest limitations
+## 9. End-to-end staging test plan
 
-- The brief supplies only Project 1/2 labels, Ahmedabad as the city, 2/3 BHK configurations and an overall portfolio price range. It does not supply actual project names, project-specific prices, RERA registration numbers, street addresses, map coordinates, verified inventory or a real sales calendar.
-- Production project records are demo-only and not approved for public display. Do not fabricate RERA or location data to make a map pin appear complete.
-- Demo visit slots are simulated. Do not represent them as real client availability.
-- The reminder worker is a mock delivery audit, not a messaging provider.
-- Portal, social advertising and hoarding source tags are supported, but live third-party ingestion is not connected.
-- The brief's 3,000 leads/month, ₹30 lakh/month spend, ₹1,000 CPL, 14-hour response and 6% visit conversion are planning assumptions, not measured production outcomes.
-- Cost-per-visit requires trustworthy source spend and attendance records. Do not infer missing spend or show-up data.
-- The three sample lead names are demo data. The placeholder phone values cannot be contacted. Do not add real buyer contact information without consent.
-- The uploaded 18-row sample PDF is not fully seeded by the current script.
+Use a separate staging MongoDB database and disposable reviewer accounts. Do not create test bookings or fake availability in the live client calendar.
 
-## 9. Production verification checklist
+1. Register a buyer, record consent and verify the lead/source record.
+2. Repeat with the same normalized contact and verify duplicate detection.
+3. Ask known fact-sheet questions in English, Hindi and Gujarati.
+4. Ask for an absent project fact and verify the assistant declines to guess and flags/assigns human follow-up.
+5. Request a person explicitly; verify a named test executive receives the lead, summary and transcript.
+6. Book a future staging slot; verify confirmation, booking record and remaining capacity.
+7. Submit simultaneous requests for the last seat; assert exactly one succeeds and the rest receive a full-slot response.
+8. Mark attendance/no-show; compare dashboard visits, show-up rate and source metrics to the test data.
+9. Create due reminder fixtures for consent=true, consent=false and doNotContact=true. Invoke the worker and verify mock-sent, skipped-no-consent and skipped-opt-out audit rows.
+10. Call the reminder endpoint without a bearer secret and assert HTTP 401.
 
-- [ ] CI workflow green on the latest commit
-- [ ] Vercel deployment for that commit is `READY`
-- [ ] Rotated Gemini key is saved in Vercel and a fresh deployment is active
-- [ ] Reviewer buyer, executive and head accounts are provisioned and login-tested
-- [ ] GitHub Actions secrets are configured and reminder workflow run is green
-- [ ] Buyer registration, consent capture and duplicate handling are tested
-- [ ] English, Hindi and Gujarati fact-sheet answers and unsupported-question handoff are tested
-- [ ] Booking concurrency test passes against a staging MongoDB database
-- [ ] Reminder endpoint returns 401 without the secret and processes mock records with the secret
-- [ ] Attendance and dashboard figures are checked against known seed records
-- [ ] Client-approved project facts, RERA details, map pins and real availability are entered before public sales use
+Do not run destructive or concurrency tests against the production customer dataset.
+
+## 10. Data, assumptions and release limits
+
+The problem statement supplies two project labels, Ahmedabad, 2/3 BHK, a combined ₹65 lakh–₹1.2 crore portfolio range and three sample leads. It does not supply real project names, project-specific pricing, RERA IDs, addresses, map coordinates, inventory, named staff, source-level spend or a live visit calendar.
+
+Therefore:
+
+- Keep project records unpublished until client facts are verified.
+- Never fabricate RERA identifiers, project claims, final prices, discounts or map pins.
+- Demo slots are simulated and cannot be represented as real availability.
+- The brief's 3,000 leads/month, ₹30 lakh spend, ₹1,000 CPL, 14-hour response and 6% visit conversion are assumptions, not measured HOMIQ results.
+- Cost per visit requires verified spend and attendance data.
+- Store/contact buyers only with appropriate consent and honour opt-outs.
+- WhatsApp must remain disabled until opt-in templates and provider callbacks are configured.
+- The product is a focused lead-to-visit workflow, not a full CRM; payments, allotments and outbound voice are out of scope.
