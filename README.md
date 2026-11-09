@@ -27,31 +27,18 @@
 
 <p align="center"><em>Thoughtful homes deserve thoughtful conversations.</em></p>
 
-## ✅ Reviewer handoff status (9 November 2026)
+## Product status
 
-**Repository:** https://github.com/MadhuTiwari-345/IsoCode  
-**Production app:** https://isocode-homiq.vercel.app  
-**Latest verified successful production build:** commit `bacae9472af748c5f4b1078e9907a66002058793` (Vercel deployment `dpl_7bwjaGRAsFAtNaYG4ebHrx9qVb97`, state `READY`). The GitHub Actions CI run for this commit completed successfully: unit tests, Payload type generation and TypeScript check all passed.
+HOMIQ is a residential discovery and sales-operations product for a developer managing multiple projects. It connects buyer enquiries, multilingual assistance, visit scheduling and sales follow-up in one workflow.
 
-The Vercel deployment history also contains failed and cancelled attempts. Those historical records remain visible by design; they do not overwrite the successful deployment. The latest repository includes reviewer-account provisioning, CI checks, this README and the technical design document. Reviewer accounts and reminder secrets still require owner-supplied private setup.
+- **Live application:** https://isocode-homiq.vercel.app
+- **Source:** https://github.com/MadhuTiwari-345/IsoCode
+- **Production deployment:** Vercel deployment from `main`, commit `ffa8f4f654c6b0a4fd6b3293e42f5b6cfdc6a191`, status **READY**.
+- **Automated checks:** GitHub Actions CI passed unit tests, Payload type generation and TypeScript validation on the same commit.
+- **Reminder worker:** manual GitHub Actions run succeeded and received `{"ok":true,"processed":0,"sentMock":0,"skipped":0}` from the protected production endpoint. This confirms authentication and endpoint execution; it does not demonstrate a real message delivery.
+- **Data integrity:** project records remain unpublished until the client verifies RERA registration, addresses, location coordinates and other project facts.
 
-### Honest completion checklist
-
-| Item | Current state |
-| --- | --- |
-| Buyer, executive and sales-head roles | Role model exists. A new secure provisioning script is available; reviewer accounts have **not** been created because unique reviewer emails and passwords must be supplied privately. |
-| Automated checks | Latest CI run passed: unit tests, Payload type generation and TypeScript check. |
-| Reminder schedule | GitHub Actions workflow is scheduled every five minutes. Repository secrets `HOMIQ_BASE_URL` and `CRON_SECRET` must be added by a repository administrator; the connected GitHub integration cannot write Actions secrets. No successful scheduled run is verified yet. |
-| Gemini key | Vercel has a `GEMINI_API_KEY` environment-variable entry. The key value is intentionally never displayed here. Confirm the rotated key is the value currently saved in Vercel, then redeploy. |
-| Sample data | Three brief leads exist in the database. The seed script supports those three and demo-only future slots. The separately supplied 18-row PDF is not fully imported. |
-| Project/RERA/location facts | Two demo project records are present but not approved for public display. Real RERA IDs, addresses, map coordinates and verified availability were not supplied; do not invent them. |
-| Production E2E | Public route responses were checked previously, but authenticated end-to-end flows and concurrent booking have not been fully verified in production. |
-
-### Provision reviewer accounts safely
-
-The repository now includes `pnpm provision:reviewers`. It creates or resets three accounts in the Payload `users` collection: buyer, executive and head. It requires six private environment variables: `HOMIQ_REVIEWER_BUYER_EMAIL`, `HOMIQ_REVIEWER_BUYER_PASSWORD`, `HOMIQ_REVIEWER_EXECUTIVE_EMAIL`, `HOMIQ_REVIEWER_EXECUTIVE_PASSWORD`, `HOMIQ_REVIEWER_HEAD_EMAIL`, and `HOMIQ_REVIEWER_HEAD_PASSWORD`. Passwords must be at least 14 characters. Set them only in a private local environment connected to the intended database; do not commit them or paste them into chat. The script logs account emails and roles only, never passwords.
-
-See [deployment.md](deployment.md) for exact setup and reviewer instructions. The technical design is in [docs/Technical-Design-Document.md](docs/Technical-Design-Document.md).
+The project deliberately distinguishes working product flows from integrations or client data that are not yet available. See [deployment.md](deployment.md) for setup and operational limits, and [the Technical Design Document](docs/Technical-Design-Document.md) for architecture and assumptions.
 
 ---
 
@@ -489,26 +476,26 @@ These are product requirements and operating safeguards. Their presence in this 
 
 Reminder timestamps are data only until a delivery provider and scheduled execution process are configured.
 
-## 🛣️ Next steps
+## 🧭 Operational roadmap
 
-- [x] Add a secure reviewer-account provisioning script for buyer, executive and sales-head roles (accounts still need private credentials and provisioning)
-- [x] Add GitHub Actions CI for unit tests and TypeScript checking (first run must be verified)
-- [ ] Verify buyer registration and lead creation end to end in production
-- [ ] Add client-verified project content, addresses, map coordinates and RERA details
-- [ ] Test duplicate detection against concurrent submissions
-- [ ] Verify visit-slot capacity under simultaneous booking attempts
-- [ ] Add GitHub Actions secrets and verify the mock reminder workflow
-- [ ] Connect an approved WhatsApp Business provider after opt-in and template review
-- [ ] Validate dashboard calculations against real operational data
-- [ ] Import and verify the additional 18-row sample dataset
+- [x] Production deployment from `main` is READY.
+- [x] CI passed unit tests, Payload type generation and TypeScript validation on the current production commit.
+- [x] Protected reminder endpoint was invoked successfully by GitHub Actions; response confirmed mock processing with zero due reminders.
+- [x] GitHub Actions repository secrets are configured sufficiently for the successful manual reminder run.
+- [ ] Provision reviewer accounts using private credentials and the documented script.
+- [ ] Run authenticated buyer, executive and sales-head journeys against a disposable/staging dataset.
+- [ ] Run a real concurrent booking test against the production-equivalent database and confirm the unique seat-claim index is deployed.
+- [ ] Replace demo project facts with client-approved RERA identifiers, addresses, map coordinates, inventory and visit slots before enabling public project pages.
+- [ ] Connect an approved WhatsApp/SMS provider only after consent, opt-in templates and delivery callbacks are configured.
+- [ ] Validate dashboard metrics against verified operational spend and visit outcomes.
+- [ ] Import and reconcile any additional client-provided sample dataset before using it in reporting.
 
 ## 🤝 Contributing
 
-1. Fork the repository.
-2. Create a focused branch: `git checkout -b feature/your-change`.
-3. Make and test your changes.
-4. Commit with a clear message.
-5. Push your branch and open a pull request.
+1. Create a focused feature branch from `main`.
+2. Make and test your changes.
+3. Commit with a clear message.
+4. Open a pull request targeting `main`.
 
 Please describe user-visible changes and include reproduction steps when reporting a bug.
 
