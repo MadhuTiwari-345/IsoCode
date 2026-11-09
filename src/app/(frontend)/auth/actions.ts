@@ -10,7 +10,7 @@ const safeNext = (n: unknown, fallback: string) => (typeof n === 'string' && n.s
 const str = (v: FormDataEntryValue | null, max = 200) => String(v ?? '').trim().slice(0, max)
 
 export async function loginAction(_: AuthState, form: FormData): Promise<AuthState> {
-  const email = str(form.get('email')).toLowerCase()
+  const email = str(form.get('email')).normalize('NFKC').replace(/[\\u200B-\\u200D\\uFEFF]/g, '').toLowerCase()
   const password = String(form.get('password') ?? '')
   if (!/^\S+@\S+\.\S+$/.test(email)) return { error: 'Enter a valid email address.', email }
   if (!password) return { error: 'Enter your password.', email }
@@ -43,11 +43,16 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
     // from the public form.
     await payload.create({ collection: 'users', data: { name, email, phone, password, role: 'buyer' }, overrideAccess: true })
   } catch (e) {
-    const msg = (e as Error).message ?? ''
-    if (/unique|already|duplicate/i.test(msg)) return { error: 'An account with this email already exists. Sign in instead.', ...keep }
-    if (/email/i.test(msg) && /valid|required/i.test(msg)) return { error: 'Please check your email address and try again.', ...keep }
+    const err = e as { name?: string; message?: string; data?: { errors?: Array<{ field?: string; message?: string }> } }
+    const message = String(err.message ?? '')
+    const fieldErrors = Array.isArray(err.data?.errors) ? err.data.errors.map((item) => ({ field: item.field, message: item.message })) : []
+    // Keep server diagnostics useful without logging the buyer's email or password.
+    console.error('[HOMIQ signup] buyer account creation failed', { name: err.name ?? 'Error', message: message.replaceAll(email, '[redacted email]'), fieldErrors })
+    if (/unique|already|duplicate|E11000/i.test(message)) return { error: 'An account with this email already exists. Sign in instead.', ...keep }
+    const emailError = fieldErrors.find((item) => item.field === 'email')
+    if (emailError) return { error: 'That email address was rejected. Check the spelling and try another address if it is already registered.', ...keep }
+    if (fieldErrors.length) return { error: fieldErrors[0].message || 'Please check the highlighted details and try again.', ...keep }
     return { error: 'We could not create your account. Please try again in a moment.', ...keep }
-  }
   try { await appAuth.login(email, password) } catch { return { error: 'Account created. Please sign in.', ...keep } }
   redirect(safeNext(form.get('next'), '/account'))
 }
