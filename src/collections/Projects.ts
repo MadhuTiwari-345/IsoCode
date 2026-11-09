@@ -10,6 +10,7 @@ export const Projects: CollectionConfig = {
   fields: [
     { name: 'name', type: 'text', required: true },
     { name: 'approvedForPublic', type: 'checkbox', defaultValue: false, index: true, admin: { description: 'Enable only after project address, map pin, RERA registration, pricing, possession and imagery have been checked against client-approved records.' } },
+    { name: 'demoOnly', type: 'checkbox', defaultValue: false, index: true, admin: { description: 'Prototype record based only on the interview brief. Never treat as verified public project information.' } },
     { name: 'slug', type: 'text', required: true, unique: true, index: true },
     { name: 'locality', type: 'text', required: true },
     { name: 'tagline', type: 'text' },
