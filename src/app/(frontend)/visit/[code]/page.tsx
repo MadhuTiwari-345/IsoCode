@@ -6,7 +6,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { fmtDay, fmtTime, fmtDateTime } from '@/lib/staff'
 import type { Project, SalesExecutive, VisitSlot, Lead } from '@/payload-types'
 
-export const metadata = { title: 'Your site visit | Company A Homes' }
+export const metadata = { title: 'Visit details | HOMIQ' }
 
 export default async function VisitPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params
@@ -33,11 +33,11 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
     <SiteHeader />
     <main className="mx-auto max-w-2xl px-6 py-10">
       <BackLink href="/account">My visits</BackLink>
-      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-brass">{demoSlot ? 'Demo booking' : b.status === 'cancelled' ? 'Cancelled' : 'Visit confirmed'} · {b.code}</p>
+      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-brass">{demoSlot ? 'Visit request' : b.status === 'cancelled' ? 'Cancelled' : 'Visit confirmed'} · {b.code}</p>
       <h1 className="mt-3 font-serif text-4xl leading-tight tracking-tight">{fmtDay(slot.startsAt)}<br />at {fmtTime(slot.startsAt)}</h1>
       <p className="mt-4 text-mute">{project.name}, {project.locality}. About {slot.durationMinutes ?? 60} minutes.</p>
 
-      {demoSlot && <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">Demo booking only. This slot was generated for prototype testing, not confirmed by Company A. Please do not travel or treat this as a real appointment.</p>}
+      {demoSlot && <p className="mt-5 rounded-xl border border-line bg-card px-4 py-3 text-sm leading-relaxed text-mute">This is a requested time from the demonstration schedule. Company A has not confirmed this appointment or its location yet. Your sales advisor will confirm the visit details before you travel.</p>}
       <div className="mt-10 overflow-hidden rounded-2xl border border-line">
         {hasMapPin ? <><iframe title={`Map of ${project.name}`} className="h-64 w-full" loading="lazy" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${q}`} /><div className="flex flex-wrap items-center justify-between gap-3 bg-card p-5"><p className="max-w-sm text-sm leading-relaxed">{project.address}</p><a className="rounded-full btn-grad px-5 py-2.5 text-sm font-medium text-white hover:brightness-110" href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noreferrer">Open in Maps</a></div></> : <div className="bg-card p-5 text-sm leading-relaxed text-mute">The verified project address and map pin have not been supplied in the interview brief. A sales advisor must confirm the location before any real visit.</div>}
       </div>
@@ -51,13 +51,13 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
       )}
 
       <section className="mt-10 border-t border-line pt-8">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-mute">Reminder schedule</h2>
+        <h2 className="text-xs uppercase tracking-[0.2em] text-mute">Planned reminders</h2>
         <ul className="mt-4 space-y-3">
           {reminders.map((r) => (
             <li key={r.label} className="flex justify-between border-b border-line pb-3 text-sm"><span>{r.label}</span><span className="text-mute">{r.at ? fmtDateTime(r.at) : '—'}</span></li>
           ))}
         </ul>
-        <p className="mt-3 text-xs text-mute">Prototype delivery is simulated. No {channel} message is sent from this deployment. WhatsApp requires separate opt-in and an approved template.</p>
+        <p className="mt-3 text-xs text-mute">Reminder times are recorded here. Message delivery is not connected in this deployment, so no {channel} message is sent. WhatsApp notifications require your opt-in and an approved template.</p>
       </section>
       {project.reraNumber && !project.reraNumber.toLowerCase().includes('pending verification') && <p className="mt-12 text-xs text-mute">RERA: {project.reraNumber}</p>}
     </main>
