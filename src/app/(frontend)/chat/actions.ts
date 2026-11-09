@@ -222,7 +222,7 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
       return reply(ctx, { messages: [value === 'price' ? `${ans} ${t(lang, 'priceNote')}` : ans], chips: nextChips(lang, true) }, label)
     }
     if (value === 'rera') {
-      return handoffToPerson(ctx, 'Buyer requested RERA registration details; no verified registration number is configured for this demo project.', label)
+      return handoffToPerson(ctx, 'Buyer requested RERA registration details; no verified registration number is configured for this demo project.', label, 'reraMissing')
     }
     return reply(ctx, { messages: [t(lang, 'fallbackNoExec')], chips: nextChips(lang, true) }, label)
   }
@@ -272,7 +272,7 @@ async function flag(leadId: string | undefined, reason: string, pendingBuyerText
   })
 }
 
-async function handoffToPerson(ctx: Ctx, reason: string, buyerText?: string): Promise<Reply> {
+async function handoffToPerson(ctx: Ctx, reason: string, buyerText?: string, introKey?: string): Promise<Reply> {
   const lang = ctx.lang
   const payload = await getPayloadClient()
   const lead = ctx.leadId
@@ -287,7 +287,7 @@ async function handoffToPerson(ctx: Ctx, reason: string, buyerText?: string): Pr
   // Save the buyer's triggering message and the assistant's handoff response
   // before reading the transcript. This prevents the summary from racing writes.
   const result = await reply(ctx, {
-    messages: [execName ? t(lang, 'humanDone', { exec: execName }) : t(lang, 'humanNoExec')],
+    messages: [introKey ? t(lang, introKey) + ' ' + (execName ? t(lang, 'humanDone', { exec: execName }) : t(lang, 'humanNoExec')) : (execName ? t(lang, 'humanDone', { exec: execName }) : t(lang, 'humanNoExec'))],
     chips: ctx.projectId ? nextChips(lang, true).filter((chip) => chip.action !== 'human') : undefined,
   }, buyerText)
 
