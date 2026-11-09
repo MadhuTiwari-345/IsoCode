@@ -33,8 +33,8 @@ HOMIQ is a residential discovery and sales-operations product for a developer ma
 
 - **Live application:** https://isocode-homiq.vercel.app
 - **Source:** https://github.com/MadhuTiwari-345/IsoCode
-- **Production deployment:** Vercel deployment from `main`, commit `ffa8f4f654c6b0a4fd6b3293e42f5b6cfdc6a191`, status **READY**.
-- **Automated checks:** GitHub Actions CI passed unit tests, Payload type generation and TypeScript validation on the same commit.
+- **Production deployment:** latest `main` deployment on Vercel is **READY**.
+- **Automated checks:** latest GitHub Actions CI run passed unit tests, Payload type generation and TypeScript validation.
 - **Reminder worker:** manual GitHub Actions run succeeded and received `{"ok":true,"processed":0,"sentMock":0,"skipped":0}` from the protected production endpoint. This confirms authentication and endpoint execution; it does not demonstrate a real message delivery.
 - **Data integrity:** project records remain unpublished until the client verifies RERA registration, addresses, location coordinates and other project facts.
 
