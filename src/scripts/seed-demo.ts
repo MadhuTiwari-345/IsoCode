@@ -76,7 +76,7 @@ for (const sample of sampleLeads) {
     overrideAccess: true,
   })
   if (!savedLead.docs[0]) throw new Error(`Could not save demo lead ${sample.leadCode}`)
-  const savedLeadDoc = savedLead.docs[0] as Lead
+  const savedLeadDoc = savedLead.docs[0] as unknown as Lead
   saved.set(sample.leadCode, String(savedLeadDoc.id))
 }
 
