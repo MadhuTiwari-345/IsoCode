@@ -396,7 +396,9 @@ Create a `.env` file in the repository root:
 ```env
 DATABASE_URL=mongodb+srv://<username>:<password>@<cluster>/<database>
 PAYLOAD_SECRET=<long-random-secret>
+GEMINI_API_KEY=<server-side-gemini-key>
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+CRON_SECRET=<long-random-cron-secret>
 ```
 
 Use your own MongoDB connection string and a securely generated secret. Do not commit real credentials.
@@ -431,6 +433,8 @@ The Payload admin interface is available at [http://localhost:3000/admin](http:/
 | `pnpm db:migrate` | Run Payload database migrations |
 | `pnpm db:migrate:create` | Create a database migration |
 | `pnpm format` | Format supported files with oxfmt |
+| `pnpm test` | Run unit tests |
+| `pnpm provision:reviewers` | Create/reset buyer, executive and sales-head reviewer accounts from private environment variables |
 
 ## ☁️ Deployment
 
@@ -442,9 +446,12 @@ HOMIQ is deployed on Vercel.
 4. Add the required environment variables:
    - `DATABASE_URL`
    - `PAYLOAD_SECRET`
+   - `GEMINI_API_KEY`
    - `NEXT_PUBLIC_SITE_URL`
-5. Confirm that the MongoDB database accepts connections from the deployment environment.
-6. Deploy and verify the public pages, buyer conversation flow and protected staff routes.
+   - `CRON_SECRET`
+5. Add GitHub Actions repository secrets `HOMIQ_BASE_URL` and `CRON_SECRET` to enable the five-minute mock reminder workflow. See [deployment.md](deployment.md).
+6. Confirm that the MongoDB database accepts connections from the deployment environment.
+7. Deploy and verify the public pages, buyer conversation flow and protected staff routes. A changed Gemini key requires a new deployment.
 
 Keep production credentials in Vercel environment settings. Never add secrets to source control.
 
@@ -484,14 +491,16 @@ Reminder timestamps are data only until a delivery provider and scheduled execut
 
 ## 🛣️ Next steps
 
+- [x] Add a secure reviewer-account provisioning script for buyer, executive and sales-head roles (accounts still need private credentials and provisioning)
+- [x] Add GitHub Actions CI for unit tests and TypeScript checking (first run must be verified)
 - [ ] Verify buyer registration and lead creation end to end in production
-- [ ] Add verified project content, imagery, addresses and RERA details
+- [ ] Add client-verified project content, addresses, map coordinates and RERA details
 - [ ] Test duplicate detection against concurrent submissions
 - [ ] Verify visit-slot capacity under simultaneous booking attempts
-- [ ] Configure and test reminder delivery
+- [ ] Add GitHub Actions secrets and verify the mock reminder workflow
 - [ ] Connect an approved WhatsApp Business provider after opt-in and template review
 - [ ] Validate dashboard calculations against real operational data
-- [ ] Add automated tests for the critical buyer and staff workflows
+- [ ] Import and verify the additional 18-row sample dataset
 
 ## 🤝 Contributing
 
