@@ -23,7 +23,7 @@ export type Reply = {
 }
 
 const LANGS: Lang[] = ['en', 'hi', 'gu']
-const SOURCES = ['portal_99acres', 'portal_magicbricks', 'social_ads', 'website', 'hoarding']
+const SOURCES = ['property_portal', 'portal_99acres', 'portal_magicbricks', 'social_ads', 'website', 'hoarding']
 const BUDGETS: Record<string, [number, number]> = { b1: [50, 75], b2: [75, 95], b3: [95, 120] }
 const clean = (s: unknown, max: number) => String(s ?? '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max)
 const cleanCtx = (c: Ctx): Ctx => ({
