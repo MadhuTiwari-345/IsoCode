@@ -10,7 +10,7 @@ import { remainingCapacity } from '@/lib/booking-capacity'
 import type { Lead, Project, SalesExecutive } from '@/payload-types'
 
 export type Ctx = { lang: Lang; leadId?: string; projectId?: string; bhk?: '2' | '3'; budget?: [number, number] }
-export type SlotOption = { id: string; label: string; day: string; time: string; remaining: number }
+export type SlotOption = { id: string; label: string; day: string; time: string; remaining: number; demoOnly: boolean }
 export type Chip = { label: string; action: string; value?: string }
 export type Reply = {
   ok: boolean
@@ -91,7 +91,7 @@ async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
     .map((s) => ({ id: s.id, remaining: remainingCapacity(s.capacity, Array.from({ length: used.get(s.id) ?? 0 }, () => ({ status: 'booked' }))), startsAt: s.startsAt }))
     .filter((s) => s.remaining > 0)
     .slice(0, 8)
-    .map((s) => ({ id: s.id, remaining: s.remaining, label: fmtDateTime(s.startsAt), day: fmtDay(s.startsAt), time: fmtTime(s.startsAt) }))
+    .map((s) => ({ id: s.id, remaining: s.remaining, label: fmtDateTime(s.startsAt), day: fmtDay(s.startsAt), time: fmtTime(s.startsAt), demoOnly: (s as any).demoOnly === true }))
 }
 
 async function pickExec(project: string | undefined, lang: Lang): Promise<SalesExecutive | null> {
@@ -179,7 +179,7 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
 
   if (input.action === 'budget' && BUDGETS[value]) {
     const [lo, hi] = BUDGETS[value]
-    const projects = (await payload.find({ collection: 'projects', where: { approvedForPublic: { equals: true } }, depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
+    const projects = (await payload.find({ collection: 'projects', where: { or: [{ approvedForPublic: { equals: true } }, { demoOnly: { equals: true } }] }, depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
     const fits = projects.filter((p) => p.priceFromLakh <= hi && p.priceToLakh >= lo && (!ctx.bhk || (p.configurations as string[] | undefined)?.includes(ctx.bhk)))
     const mid = (lo + hi) / 2
     const ranked = fits.slice().sort((a, b) => Math.abs((a.priceFromLakh + a.priceToLakh) / 2 - mid) - Math.abs((b.priceFromLakh + b.priceToLakh) / 2 - mid))
