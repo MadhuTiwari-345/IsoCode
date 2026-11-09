@@ -59,7 +59,7 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
             {field('Stage', STAGE_LABEL[lead.stage ?? 'new'])}
             {field('First response', lead.firstResponseMinutes == null ? <span className="text-clay">Not contacted</span> : `${lead.firstResponseMinutes} min`)}
             {field('DPDP consent', lead.consentDpdp ? `Given ${lead.consentAt ? fmtDateTime(lead.consentAt) : ''}` : <span className="text-clay">Not recorded</span>)}
-            {field('WhatsApp opt-in', lead.whatsappOptIn ? 'Yes' : 'No. Do not message on WhatsApp')}
+            {field('WhatsApp opt-in', lead.whatsappOptIn && !lead.doNotContact ? 'Yes' : 'No. Do not message on WhatsApp')}\n            {field('Contact status', lead.doNotContact ? 'Opted out. Do not contact.' : 'No opt-out recorded')}
           </dl>
           {bookings.docs.map((b) => {
             const s = b.slot as VisitSlot
