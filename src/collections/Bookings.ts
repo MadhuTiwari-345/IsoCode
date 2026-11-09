@@ -23,8 +23,8 @@ export const Bookings: CollectionConfig = {
         data.code = data.code || `SV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
         data.status = 'booked'
 
-        // This read chooses a candidate seat. The unique claimKey index below
-        // is what makes the reservation race-safe, not this read itself.
+        // The read chooses a candidate seat. The unique claimKey index is the
+        // concurrency guard: only one concurrent insert can own a seat key.
         const active = await req.payload.find({
           collection: 'bookings', req, overrideAccess: true, depth: 0,
           where: { and: [{ slot: { equals: slot.id } }, { status: { in: ['booked', 'attended'] } }] },
@@ -38,4 +38,16 @@ export const Bookings: CollectionConfig = {
         return data
       },
     ],
-
+  },
+  fields: [
+    { name: 'code', type: 'text', unique: true, index: true, admin: { readOnly: true } },
+    { name: 'claimKey', type: 'text', unique: true, index: true, admin: { hidden: true, description: 'Unique slot seat claim. Enforced by a MongoDB unique index.' } },
+    { name: 'lead', type: 'relationship', relationTo: 'leads', required: true, index: true },
+    { name: 'slot', type: 'relationship', relationTo: 'visit-slots', required: true, index: true },
+    { name: 'project', type: 'relationship', relationTo: 'projects', index: true },
+    { name: 'visitors', type: 'number', defaultValue: 2, min: 1, max: 8 },
+    { name: 'status', type: 'select', defaultValue: 'booked', index: true, options: [{ label: 'Booked', value: 'booked' }, { label: 'Attended', value: 'attended' }, { label: 'No-show', value: 'no_show' }, { label: 'Cancelled', value: 'cancelled' }] },
+    { name: 'reminderDayBefore', type: 'date' },
+    { name: 'reminderTwoHours', type: 'date' },
+  ],
+}
