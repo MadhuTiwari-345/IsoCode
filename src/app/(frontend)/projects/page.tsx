@@ -13,7 +13,7 @@ const portfolioCards = [
 export default async function ProjectsPage() {
   const published = await getProjects()
   // Until Company A supplies approved project records, show two honest portfolio
-  // placeholders from the brief rather than an empty catalogue or invented facts.
+  // portfolio overview from the brief rather than inventing project-specific details.
   const projects = published.length ? published : portfolioCards
   const isBriefOnly = published.length === 0
 
@@ -41,7 +41,7 @@ export default async function ProjectsPage() {
           <span>₹65 lakh – ₹1.2 crore portfolio range*</span>
         </div>
 
-        {isBriefOnly && <p className="mt-5 max-w-3xl text-xs leading-relaxed text-mute">Project-specific names, addresses, RERA registration numbers, floor plans and availability have not yet been provided by the developer. The cards below identify the two developments from the brief; images are illustrative, not photographs of either property.</p>}
+        {isBriefOnly && <p className="mt-5 max-w-3xl text-xs leading-relaxed text-mute">Project-specific brochures, addresses, RERA registrations and floor plans are not yet available. These cards summarise only the portfolio information supplied; imagery is illustrative.</p>}
 
         <div className="mt-9 grid gap-7 md:grid-cols-2">
           {projects.map((p, i) => (
