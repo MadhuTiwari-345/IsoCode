@@ -437,7 +437,7 @@ export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: strin
   })
   const demoOnly = Boolean((slot as any).demoOnly || (project as any)?.demoOnly)
   const confirmation = demoOnly
-    ? `Demo booking recorded for ${when} at ${project?.name ?? 'the selected project'}. This is simulated availability, not a real Company A appointment. No site pin or reminder messages will be sent.`
+    ? `Your visit request is saved for ${when} at ${project?.name ?? 'the selected project'}. This time comes from the demonstration schedule and is not yet confirmed by Company A. Your advisor must confirm the appointment and location before you travel. Reminder delivery is not connected.`
     : t(lang, 'booked', { when, project: project?.name ?? '', exec: exec?.name ?? 'Our sales advisor' })
   return reply(ctx, {
     messages: [confirmation],
