@@ -95,7 +95,7 @@ if (!existingBooking.docs.length) {
       startsAt: new Date('2026-11-01T11:00:00+05:30').toISOString(),
       durationMinutes: 60,
       capacity: 1,
-      isOpen: false,
+      isOpen: true,
     },
     overrideAccess: true,
   })
@@ -105,6 +105,7 @@ if (!existingBooking.docs.length) {
     context: { allowHistoricalDemo: true },
     overrideAccess: true,
   })
+  await payload.update({ collection: 'visit-slots', id: slot.id, data: { isOpen: false }, overrideAccess: true })
 }
 
 payload.logger.info('HOMIQ demo seed complete.')
