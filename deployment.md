@@ -1,4 +1,4 @@
-# HOMIQ — deployment and verification
+# HOMIQ - deployment and verification
 
 **Repository:** https://github.com/MadhuTiwari-345/IsoCode  
 **Production:** https://isocode-homiq.vercel.app  
