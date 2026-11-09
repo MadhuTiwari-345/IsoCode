@@ -34,13 +34,13 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
     <SiteHeader />
     <main className="mx-auto max-w-2xl px-6 py-10">
       <BackLink href="/account">My visits</BackLink>
-      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-brass">{demoSlot ? 'Visit request · awaiting advisor confirmation' : b.status === 'cancelled' ? 'Cancelled' : 'Visit confirmed'} · {b.code}</p>
+      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-brass">{demoSlot ? 'Sample appointment · reviewer demo' : b.status === 'cancelled' ? 'Cancelled' : 'Visit confirmed'} · {b.code}</p>
       <h1 className="mt-3 font-serif text-4xl leading-tight tracking-tight">{fmtDay(slot.startsAt)}<br />at {fmtTime(slot.startsAt)}</h1>
       <p className="mt-4 text-mute">{project.name}, {project.locality}. About {slot.durationMinutes ?? 60} minutes.</p>
 
-      {demoSlot && <p className="mt-5 rounded-xl border border-line bg-card px-4 py-3 text-sm leading-relaxed text-mute">Your selected time is recorded as a visit request. A sales advisor will confirm the appointment and verified location with you before you travel.</p>}
+      {demoSlot && <p className="mt-5 rounded-xl border border-line bg-card px-4 py-3 text-sm leading-relaxed text-mute">This appointment uses the review site's sample schedule and illustrative Ahmedabad map point. It demonstrates the booking flow; it is not an appointment on Company A's operating calendar.</p>}
       <div className="mt-10 overflow-hidden rounded-2xl border border-line">
-        {hasMapPin ? <><iframe title={`Map of ${project.name}`} className="h-64 w-full" loading="lazy" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${q}`} /><div className="flex flex-wrap items-center justify-between gap-3 bg-card p-5"><p className="max-w-sm text-sm leading-relaxed">{project.address}</p><a className="rounded-full btn-grad px-5 py-2.5 text-sm font-medium text-white hover:brightness-110" href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noreferrer">Open in Maps</a></div></> : <div className="bg-card p-5 text-sm leading-relaxed text-mute">The site address and map pin are awaiting verification. Your advisor will share the correct directions when confirming the visit.</div>}
+        {hasMapPin ? <><iframe title={`Map of ${project.name}`} className="h-64 w-full" loading="lazy" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${q}`} /><div className="flex flex-wrap items-center justify-between gap-3 bg-card p-5"><p className="max-w-sm text-sm leading-relaxed">{project.address}</p><a className="rounded-full btn-grad px-5 py-2.5 text-sm font-medium text-white hover:brightness-110" href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noreferrer">Open in Maps</a></div></> : <div className="bg-card p-5 text-sm leading-relaxed text-mute">Illustrative Ahmedabad demo map point. It is included to demonstrate the map experience and is not the address of either development.</div>}
       </div>
       {exec ? (
         <section className="mt-10 border-t border-line pt-8">
@@ -62,7 +62,7 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
         </ul>
         <p className="mt-3 text-xs text-mute">Reminder times are recorded here. Message delivery is not connected in this deployment, so no {channel} message is sent. WhatsApp notifications require your opt-in and an approved template.</p>
       </section>
-      {project.reraNumber && !project.reraNumber.toLowerCase().includes('pending verification') && <p className="mt-12 text-xs text-mute">RERA: {project.reraNumber}</p>}
+      {project.reraNumber && !project.reraNumber.toLowerCase().includes('pending verification') && !project.reraNumber.toLowerCase().includes('demo') && <p className="mt-12 text-xs text-mute">RERA: {project.reraNumber}</p>}
     </main>
     </>
   )
