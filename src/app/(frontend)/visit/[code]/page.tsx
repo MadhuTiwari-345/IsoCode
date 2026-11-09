@@ -33,7 +33,7 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
     <SiteHeader />
     <main className="mx-auto max-w-2xl px-6 py-10">
       <BackLink href="/account">My visits</BackLink>
-      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-brass">{b.status === 'cancelled' ? 'Cancelled' : 'Visit confirmed'} · {b.code}</p>
+      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-brass">{demoSlot ? 'Demo booking' : b.status === 'cancelled' ? 'Cancelled' : 'Visit confirmed'} · {b.code}</p>
       <h1 className="mt-3 font-serif text-4xl leading-tight tracking-tight">{fmtDay(slot.startsAt)}<br />at {fmtTime(slot.startsAt)}</h1>
       <p className="mt-4 text-mute">{project.name}, {project.locality}. About {slot.durationMinutes ?? 60} minutes.</p>
 
