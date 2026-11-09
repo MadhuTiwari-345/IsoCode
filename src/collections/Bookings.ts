@@ -38,6 +38,22 @@ export const Bookings: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        // Release the unique seat key when a visit is cancelled or marked no-show.
+        // Use a unique tombstone instead of null so Mongo's unique index remains valid.
+        if (operation === 'update' && (doc.status === 'cancelled' || doc.status === 'no_show') && doc.claimKey && !doc.claimKey.startsWith('released:')) {
+          await req.payload.update({
+            collection: 'bookings',
+            id: doc.id,
+            req,
+            overrideAccess: true,
+            data: { claimKey: `released:${doc.id}` },
+          })
+        }
+        return doc
+      },
+    ],
   },
   fields: [
     { name: 'code', type: 'text', unique: true, index: true, admin: { readOnly: true } },
