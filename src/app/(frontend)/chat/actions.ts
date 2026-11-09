@@ -306,19 +306,55 @@ async function handoffToPerson(ctx: Ctx, reason: string, buyerText?: string): Pr
   return result
 }
 
+async function geminiFactAnswer(projectId: string | undefined, question: string, lang: Lang): Promise<string | null> {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey || !projectId) return null
+  const payload = await getPayloadClient()
+  const facts = await payload.find({ collection: 'fact-sheet', depth: 0, limit: 100, overrideAccess: true, where: { project: { equals: projectId } } })
+  const language = lang === 'hi' ? 'Hindi' : lang === 'gu' ? 'Gujarati' : 'English'
+  const approvedFacts = facts.docs.map((fact) => ({ topic: fact.topic, answer: lang === 'hi' ? (fact.answerHi || fact.answerEn) : lang === 'gu' ? (fact.answerGu || fact.answerEn) : fact.answerEn })).filter((fact) => Boolean(fact.answer))
+  if (!approvedFacts.length) return null
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: 'You are HOMIQ, a careful residential sales concierge. Use ONLY the approved fact sheet supplied by the user. Never infer or invent any property fact, price, discount, availability, possession, amenity, RERA registration, location, approval, inventory or promise. Never quote a final price or discount. If the sheet does not explicitly answer, return supported=false. Answer in ' + language + '. Return JSON only: supported (boolean), answer (string).' }] },
+      contents: [{ role: 'user', parts: [{ text: JSON.stringify({ question, approvedFacts }) }] }],
+      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300 },
+    }),
+    signal: AbortSignal.timeout(12000),
+  })
+  if (!response.ok) throw new Error('Gemini request failed')
+  const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> }
+  const raw = data.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('').trim()
+  if (!raw) return null
+  const parsed = JSON.parse(raw) as { supported?: boolean; answer?: string }
+  const answer = clean(parsed.answer, 900)
+  return parsed.supported === true && answer.length >= 2 ? answer : null
+}
+
 export async function askQuestion(input: { ctx: Ctx; text: string }): Promise<Reply> {
   const ctx = cleanCtx(input.ctx)
   const lang = ctx.lang
   const text = clean(input.text, 400)
   if (!text) return { ok: false, error: 'Empty', messages: [], ctx }
+  if (/\\b(human|person|salesperson|advisor|agent)\\b|किसी से बात|व्यक्ति से बात|કોઈ સાથે વાત|વ્યક્તિ સાથે વાત/i.test(text)) {
+    return handoffToPerson(ctx, 'Buyer asked to speak to a person', text)
+  }
   if (DISCOUNT_RE.test(text)) {
     await flag(ctx.leadId, `Asked about discount or final price: "${text.slice(0, 120)}"`, text)
     return reply(ctx, { messages: [t(lang, 'noDiscount')], chips: ctx.projectId ? nextChips(lang, true) : undefined }, text)
   }
   const topic = detectTopic(text)
-  const ans = topic ? await answerFact(ctx.projectId, topic, lang) : null
-  if (ans) return reply(ctx, { messages: [ans], chips: nextChips(lang, true) }, text)
-  await flag(ctx.leadId, `Unanswered question: "${text.slice(0, 120)}"`, text)
+  const approvedAnswer = topic ? await answerFact(ctx.projectId, topic, lang) : null
+  if (approvedAnswer) return reply(ctx, { messages: [approvedAnswer], chips: nextChips(lang, true) }, text)
+  try {
+    const generated = await geminiFactAnswer(ctx.projectId, text, lang)
+    if (generated) return reply(ctx, { messages: [generated], chips: nextChips(lang, true) }, text)
+  } catch (error) {
+    console.error('HOMIQ Gemini fact-answer failed:', error instanceof Error ? error.message : 'unknown error')
+  }
+  await flag(ctx.leadId, `Fact not available in approved sheet: "${text.slice(0, 120)}"`, text)
   let execName = ''
   if (ctx.leadId) {
     const payload = await getPayloadClient()
@@ -327,7 +363,6 @@ export async function askQuestion(input: { ctx: Ctx; text: string }): Promise<Re
   }
   return reply(ctx, { messages: [execName ? t(lang, 'fallback', { exec: execName }) : t(lang, 'fallbackNoExec')], chips: ctx.projectId ? nextChips(lang, true) : undefined }, text)
 }
-
 export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: string }): Promise<Reply> {
   const ctx = cleanCtx(input.ctx)
   const lang = ctx.lang
