@@ -71,7 +71,7 @@ export default function ChatClient() {
       <div className="mt-4 flex items-center justify-between rounded-2xl border border-line bg-white px-4 py-3 shadow-sm">
         <div className="flex items-center gap-3">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-ink text-sm font-semibold text-white">H</span>
-          <div><p className="text-sm font-semibold tracking-wide">HOMIQ concierge</p><p className="mt-0.5 text-[11px] text-mute">Verified project information · Ahmedabad</p></div>
+          <div><p className="text-sm font-semibold tracking-wide">HOMIQ concierge</p><p className="mt-0.5 text-[11px] text-mute">Brief-backed information · Ahmedabad</p></div>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-moss-soft px-3 py-1.5 text-[10px] font-medium text-moss"><span className="h-1.5 w-1.5 rounded-full bg-moss" /> Here to help</span>
       </div>
