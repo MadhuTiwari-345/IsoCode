@@ -156,21 +156,6 @@ for (const project of [project1, project2]) {
   }
 }
 
-// Future availability is simulated for prototype testing, never a real client calendar.
-const nowIST = new Date(Date.now() + 330 * 60_000)
-const todayIST = Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate())
-for (const project of [project1, project2]) {
-  for (const dayOffset of [2, 3, 4]) {
-    const day = new Date(todayIST + dayOffset * 24 * 60 * 60_000)
-    const date = [day.getUTCFullYear(), String(day.getUTCMonth() + 1).padStart(2, '0'), String(day.getUTCDate()).padStart(2, '0')].join('-')
-    for (const time of ['11:00', '15:00']) {
-      const startsAt = new Date(date + 'T' + time + ':00+05:30').toISOString()
-      const existingSlot = await payload.find({ collection: 'visit-slots', where: { and: [{ project: { equals: project.id } }, { startsAt: { equals: startsAt } }] }, limit: 1, depth: 0, overrideAccess: true })
-      if (!existingSlot.docs.length) await payload.create({ collection: 'visit-slots', data: { project: project.id, startsAt, durationMinutes: 60, capacity: 1, isOpen: true, demoOnly: true } as any, overrideAccess: true })
-    }
-  }
-}
-
 payload.logger.info('HOMIQ demo seed complete.')
 payload.logger.info(`Project 1 mapped to existing project: ${project1.name} (${project1.id})`)
 payload.logger.info(`Project 2 mapped to existing project: ${project2.name} (${project2.id})`)
