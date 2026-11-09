@@ -76,15 +76,18 @@ async function getProject(id?: string): Promise<Project | null> {
 async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
   const payload = await getPayloadClient()
   const now = new Date().toISOString()
+  console.info('HOMIQ openSlots: querying slots', { projectId, now })
   const slots = await payload.find({
     collection: 'visit-slots', depth: 0, limit: 60, sort: 'startsAt', overrideAccess: true,
     where: { and: [{ project: { equals: projectId } }, { isOpen: { equals: true } }, { startsAt: { greater_than: now } }] },
   })
+  console.info('HOMIQ openSlots: slots found', { count: slots.docs.length })
   if (!slots.docs.length) return []
   const booked = await payload.find({
     collection: 'bookings', depth: 0, limit: 1000, pagination: false, overrideAccess: true,
     where: { and: [{ slot: { in: slots.docs.map((s) => s.id) } }, { status: { in: ['booked', 'attended'] } }] },
   })
+  console.info('HOMIQ openSlots: bookings found', { count: booked.docs.length })
   const used = new Map<string, number>()
   for (const b of booked.docs) used.set(b.slot as string, (used.get(b.slot as string) ?? 0) + 1)
   return slots.docs
