@@ -78,6 +78,8 @@ export const Leads: CollectionConfig = {
     { name: 'consentDpdp', type: 'checkbox', defaultValue: false, admin: { description: 'DPDP Act 2023: explicit consent to process personal data.' } },
     { name: 'consentAt', type: 'date' },
     { name: 'whatsappOptIn', type: 'checkbox', defaultValue: false, admin: { description: 'Required before any WhatsApp Business message is sent.' } },
+    { name: 'doNotContact', type: 'checkbox', defaultValue: false, index: true, admin: { description: 'Opt-out flag. Must be checked before any outbound contact.' } },
+    { name: 'optedOutAt', type: 'date', admin: { description: 'When the buyer opted out of contact.' } },
     { name: 'user', type: 'relationship', relationTo: 'users', index: true, admin: { description: 'Website account that created this lead, if signed in.' } },
     { name: 'flagged', type: 'checkbox', defaultValue: false, index: true, admin: { description: 'Chat needs the sales head to review (unanswered question, request for a person, discount ask).' } },
     { name: 'flagReason', type: 'text' },
