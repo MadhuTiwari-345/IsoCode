@@ -218,7 +218,13 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
 
   if (input.action === 'fact' && value) {
     const ans = await answerFact(ctx.projectId, value, lang)
-    return reply(ctx, { messages: [ans ? (value === 'price' ? `${ans} ${t(lang, 'priceNote')}` : ans) : t(lang, 'fallbackNoExec')], chips: nextChips(lang, true) }, label)
+    if (ans) {
+      return reply(ctx, { messages: [value === 'price' ? `${ans} ${t(lang, 'priceNote')}` : ans], chips: nextChips(lang, true) }, label)
+    }
+    if (value === 'rera') {
+      return handoffToPerson(ctx, 'Buyer requested RERA registration details; no verified registration number is configured for this demo project.', label)
+    }
+    return reply(ctx, { messages: [t(lang, 'fallbackNoExec')], chips: nextChips(lang, true) }, label)
   }
 
   if (input.action === 'visit' && ctx.projectId) {
