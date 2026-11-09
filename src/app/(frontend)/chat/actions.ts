@@ -75,6 +75,8 @@ async function getProject(id?: string): Promise<Project | null> {
 
 async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
   const payload = await getPayloadClient()
+  const project = await getProject(projectId)
+  if (!project || !(project as any).approvedForPublic || (project as any).demoOnly) return []
   const now = new Date().toISOString()
   const slots = await payload.find({
     collection: 'visit-slots', depth: 0, limit: 60, sort: 'startsAt', overrideAccess: true,
@@ -96,7 +98,7 @@ async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
 
 async function pickExec(project: string | undefined, lang: Lang): Promise<SalesExecutive | null> {
   const payload = await getPayloadClient()
-  const execs = (await payload.find({ collection: 'sales-executives', where: { active: { equals: true } }, depth: 0, limit: 50, overrideAccess: true })).docs
+  const execs = (await payload.find({ collection: 'sales-executives', where: { active: { equals: true } }, depth: 0, limit: 50, overrideAccess: true })).docs.filter((e) => !/demo|simulated/i.test(e.name) && Boolean(e.phone?.trim()))
   const fit = (strict: boolean) => execs.filter((e) => (!project || !strict || (e.projects as string[] | undefined)?.includes(project)) && (!strict || (e.languages as string[]).includes(lang)))
   const pool = fit(true).length ? fit(true) : execs
   let best: SalesExecutive | null = null, bestLoad = Infinity
@@ -398,7 +400,8 @@ export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: strin
   if (!ctx.leadId || !ctx.projectId) return { ok: false, error: 'Please start the conversation first.', messages: [], ctx }
   const lead = await payload.findByID({ collection: 'leads', id: ctx.leadId, depth: 0, overrideAccess: true }).catch(() => null)
   const slot = await payload.findByID({ collection: 'visit-slots', id: clean(input.slotId, 64), depth: 0, overrideAccess: true }).catch(() => null)
-  if (!lead || !slot || slot.project !== ctx.projectId) return { ok: false, error: 'This time is not available.', messages: [], ctx }
+  const projectRecord = await getProject(ctx.projectId)
+  if (!lead || !slot || slot.project !== ctx.projectId || !(projectRecord as any)?.approvedForPublic || (projectRecord as any)?.demoOnly || (slot as any).demoOnly || !slot.isOpen || new Date(slot.startsAt).getTime() <= Date.now()) return { ok: false, error: 'This time is not available for booking. Please request an advisor to confirm a live appointment.', messages: [], ctx }
 
   let booking
   // Retry unique-seat collisions. Another buyer may have claimed the same
