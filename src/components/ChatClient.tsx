@@ -102,6 +102,7 @@ export default function ChatClient() {
 
         {slots.length > 0 && !code && (
           <div className="rise space-y-4">
+            {slots.some((slot) => slot.demoOnly) && <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">Prototype only: these are simulated sample slots, not confirmed Company A availability. Do not travel based on this demo booking.</p>}
             {Object.entries(slots.reduce<Record<string, SlotOption[]>>((acc, x) => { (acc[x.day] ??= []).push(x); return acc }, {})).map(([day, list]) => (
               <div key={day}>
                 <p className="mb-2 text-xs uppercase tracking-wider text-mute">{day}</p>
