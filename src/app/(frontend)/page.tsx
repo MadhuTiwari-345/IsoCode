@@ -54,7 +54,7 @@ export default async function HomePage() {
             <Link href="/projects" className="text-sm underline underline-offset-4">All projects →</Link>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-2">
-            {projects.length === 0 && <p className="text-mute"></p>}
+            {projects.length === 0 && <div className="rounded-2xl border border-line bg-card p-8 md:col-span-2"><p className="text-xs uppercase tracking-[0.2em] text-moss">Project information being verified</p><h3 className="mt-3 max-w-2xl font-serif text-3xl">We will only show details that have been confirmed.</h3><p className="mt-3 max-w-xl text-sm leading-relaxed text-mute">The interview brief does not include project-specific addresses, RERA registrations or inventory. Start a conversation to share your requirements; a sales advisor can confirm the missing details.</p><Link href="/chat" className="btn-grad mt-6 inline-block rounded-full px-6 py-3 text-sm font-medium text-white">Talk to HOMIQ</Link></div>}
             {projects.map((p) => (
               <Link key={p.id} href={`/projects/${p.slug}`} className="group overflow-hidden rounded-[28px] border border-line bg-card">
                 <div className="relative h-72 overflow-hidden">
