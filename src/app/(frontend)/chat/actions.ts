@@ -419,8 +419,11 @@ export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: strin
     collection: 'leads', id: lead.id, overrideAccess: true,
     data: { stage: 'visit_booked', assignedTo: exec?.id, summary, handedOffAt: new Date().toISOString() },
   })
+  const confirmation = slot.demoOnly
+    ? `Demo booking recorded for ${when} at ${project?.name ?? 'the selected project'}. This is simulated availability, not a real Company A appointment. No site pin or reminder messages will be sent.`
+    : t(lang, 'booked', { when, project: project?.name ?? '', exec: exec?.name ?? 'Our sales advisor' })
   return reply(ctx, {
-    messages: [t(lang, 'booked', { when, project: project?.name ?? '', exec: exec?.name ?? 'Our sales advisor' })],
+    messages: [confirmation],
     bookingCode: full.code ?? undefined,
   }, clean(input.label, 120))
 }
