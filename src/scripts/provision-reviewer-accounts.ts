@@ -1,10 +1,9 @@
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
-type Role = 'buyer' | 'executive' | 'head'
+type Role = 'executive' | 'head'
 
 const specs: Array<{ role: Role; prefix: string; defaultName: string }> = [
-  { role: 'buyer', prefix: 'HOMIQ_REVIEWER_BUYER', defaultName: 'HOMIQ Buyer Reviewer' },
   { role: 'executive', prefix: 'HOMIQ_REVIEWER_EXECUTIVE', defaultName: 'HOMIQ Executive Reviewer' },
   { role: 'head', prefix: 'HOMIQ_REVIEWER_HEAD', defaultName: 'HOMIQ Sales Head Reviewer' },
 ]
