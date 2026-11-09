@@ -41,7 +41,7 @@ HOMIQ is a residential discovery and sales-operations product for a developer ma
 - **Booking concurrency:** The unique seat-claim index is part of the implementation, but concurrent booking behavior still needs an integration test against a staging database.
 - **Reviewer demo data:** `pnpm seed:demo` marks Project 01 and Project 02 as demo catalogue entries, adds clearly labelled sample Ahmedabad map coordinates and future sample visit slots, and seeds the three brief leads. The demo map pin and schedule are illustrative only; they are not Company A's real sites or calendar. Demo RERA text is explicitly not a registration.
 
-The project deliberately distinguishes working product flows from integrations or client data that are not yet available. See [deployment.md](deployment.md) for setup and operational limits, and [the Technical Design Document](docs/Technical-Design-Document.md) for architecture and assumptions.
+HOMIQ is presented as a complete reviewer demonstration: the buyer journey can be exercised with synthetic project, map, slot and advisor fixtures, while lead capture, chat persistence, booking rules, handoff and staff reporting use the application backend. Synthetic values are explicitly demo data; they are not claims about Company A's real sites, registrations, staff or calendar. See [deployment.md](deployment.md) for setup and [the Technical Design Document](docs/Technical-Design-Document.md) for architecture, data boundaries and assumptions.
 
 ---
 
@@ -83,7 +83,7 @@ This status is based on a review of the repository's `main` branch. A screen ren
 
 **Important distinction:** the chat combines a deterministic guided qualification flow with a Gemini fact-answer fallback. Gemini receives only approved fact-sheet entries for the selected project and must return a structured supported/unsupported result. Unsupported questions are escalated. Visit booking is a separate server-side action with database-enforced seat claims; it is not an LLM function-calling tool invocation. This satisfies a guarded AI assistant plus booking workflow, but should be described honestly as a constrained AI integration rather than a fully autonomous tool-calling agent.
 
-The reviewer environment intentionally uses Project 01 and Project 02 as demo catalogue entries. The seed creates an illustrative Ahmedabad map point and sample future visit schedule so the reviewer can complete the booking flow. These are invented demonstration values, not Company A site information, real availability or statutory registrations. The RERA field is explicitly marked as demo-only. Replace the sample catalogue with client-approved records before using HOMIQ for real sales.
+The reviewer environment uses Project 01 and Project 02 as fictional catalogue fixtures. It includes illustrative map points, future visit slots and a simulated advisor so a reviewer can complete discovery → chat → booking → handoff → staff review without waiting for client systems. These fixtures are intentionally synthetic and must never be interpreted as Company A's actual property locations, RERA registrations, employees or available appointment calendar. The public experience should describe the booking as a demo appointment and avoid presenting synthetic legal or property facts as verified. Replace the fixtures with client-approved data before any real sales use.
 
 ## 🎨 Visual identity
 
@@ -544,3 +544,30 @@ Please describe user-visible changes and include reproduction steps when reporti
   <strong>HOMIQ</strong><br/>
   <sub>A thoughtful first conversation can make all the difference.</sub>
 </p>
+
+
+## 🎬 Reviewer walkthrough
+
+The deployed experience is designed to be testable without access to Company A's private systems:
+
+1. Open the public site and browse Project 01 / Project 02.
+2. Create a buyer account, accept the enquiry consent and choose English, Hindi or Gujarati.
+3. Continue the concierge conversation, share a configuration and budget, and ask both a supported and an unsupported question.
+4. Request a visit and select one of the seeded future demo slots. The booking is persisted and has a unique booking reference.
+5. Open **My visits** to review the appointment, assigned simulated advisor and reminder schedule.
+6. Sign in with a provisioned executive or sales-head reviewer account to inspect the lead, transcript, handoff summary, visit and dashboard.
+
+The demo map point, appointment availability and advisor are synthetic fixtures. The workflow is real application behavior backed by the configured database; the represented property operations are not live Company A operations. Reminder delivery is simulated and does not send SMS or WhatsApp.
+
+## 🧭 Demo data and production boundary
+
+| Data | Reviewer environment | Real deployment requirement |
+|---|---|---|
+| Project catalogue | Project 01 and Project 02 demo fixtures | Client-approved project names and details |
+| Map | Illustrative Ahmedabad demo points | Surveyed address and verified coordinates |
+| Registration | Explicit demo-only placeholder; never a valid RERA claim | Verified project-specific RERA registration |
+| Visit availability | Seeded future demo slots | Sales-head-maintained live calendar |
+| Sales assignment | Simulated HOMIQ advisor record | Actual staff roster, languages and contact details |
+| Reminders | Idempotent mock delivery audit | Approved SMS/WhatsApp provider, templates and callbacks |
+
+Do not use demo records to make a real property offer, direct a buyer to a site, or send a marketing message. The distinction is intentional: reviewers can test the whole software flow while the product remains honest about which business facts are synthetic.
