@@ -13,7 +13,8 @@
     "payload": "NODE_OPTIONS=--no-deprecation payload",
     "db:migrate": "payload migrate",
     "db:migrate:create": "payload migrate:create",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "seed:demo": "payload run src/scripts/seed-demo.ts"
   },
   "dependencies": {
     "@payloadcms/next": "4.0.0-beta.4",
