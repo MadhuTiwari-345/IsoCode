@@ -47,7 +47,7 @@ export default async function Dashboard() {
     ['Unreached after 48 hours', pct(unreached.length, old.length), `${unreached.length} of ${old.length} leads. Target under 5%`],
     ['Lead to visit rate', pct(visitLeads.size, leads.length), 'Target 8%'],
     ['Show-up rate', pct(showUp, completedVisitCount), `${showUp} of ${completedVisitCount} completed visits`],
-    ['Cost per visit', visitLeads.size ? inr(totalSpend / visitLeads.size) : '—', `${inr(totalSpend)} across ${visitLeads.size} recorded visits`],
+    ['Cost per visit', totalSpend > 0 && visitLeads.size ? inr(totalSpend / visitLeads.size) : '—', totalSpend > 0 ? `${inr(totalSpend)} across ${visitLeads.size} recorded visits` : 'Enter verified source spend to calculate this KPI'],
   ]
   const flagged = leadsRes.docs.filter((l) => l.flagged)
   const waiting = leads.filter((l) => l.firstResponseMinutes == null).sort((a, b) => +new Date(a.enquiredAt) - +new Date(b.enquiredAt)).slice(0, 6)
