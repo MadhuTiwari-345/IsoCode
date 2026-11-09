@@ -300,6 +300,7 @@ export interface Project {
   id: string;
   name: string;
   approvedForPublic: boolean;
+  demoOnly: boolean;
   slug: string;
   locality: string;
   tagline?: string | null;
@@ -494,6 +495,7 @@ export interface VisitSlot {
    */
   capacity: number;
   isOpen?: boolean | null;
+  demoOnly: boolean;
   createdBy?:
     | ({
         relationTo: 'admins';
