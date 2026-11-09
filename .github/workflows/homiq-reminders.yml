@@ -1,0 +1,32 @@
+name: HOMIQ reminder worker
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homiq-reminder-worker
+  cancel-in-progress: false
+
+jobs:
+  deliver-reminders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Invoke protected reminder endpoint
+        env:
+          HOMIQ_BASE_URL: ${{ secrets.HOMIQ_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${HOMIQ_BASE_URL:-}" || -z "${CRON_SECRET:-}" ]]; then
+            echo "Missing HOMIQ_BASE_URL or CRON_SECRET repository secret."
+            exit 1
+          fi
+          curl --fail --silent --show-error --max-time 45 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${HOMIQ_BASE_URL%/}/api/cron/reminders"
