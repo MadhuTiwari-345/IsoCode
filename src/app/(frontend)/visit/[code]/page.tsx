@@ -17,7 +17,8 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
   const slot = b.slot as VisitSlot
   const project = (typeof slot.project === 'object' ? slot.project : null) as Project | null
   const lead = b.lead as Lead
-  const exec = lead.assignedTo && typeof lead.assignedTo === 'object' ? (lead.assignedTo as SalesExecutive) : null
+  const assignedExec = lead.assignedTo && typeof lead.assignedTo === 'object' ? (lead.assignedTo as SalesExecutive) : null
+  const exec = assignedExec && !/demo|simulated/i.test(assignedExec.name) ? assignedExec : null
   if (!project) notFound()
   const q = `${project.latitude},${project.longitude}`
   const bbox = `${project.longitude - 0.008},${project.latitude - 0.005},${project.longitude + 0.008},${project.latitude + 0.005}`
@@ -41,13 +42,15 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
       <div className="mt-10 overflow-hidden rounded-2xl border border-line">
         {hasMapPin ? <><iframe title={`Map of ${project.name}`} className="h-64 w-full" loading="lazy" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${q}`} /><div className="flex flex-wrap items-center justify-between gap-3 bg-card p-5"><p className="max-w-sm text-sm leading-relaxed">{project.address}</p><a className="rounded-full btn-grad px-5 py-2.5 text-sm font-medium text-white hover:brightness-110" href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noreferrer">Open in Maps</a></div></> : <div className="bg-card p-5 text-sm leading-relaxed text-mute">The site address and map pin are awaiting verification. Your advisor will share the correct directions when confirming the visit.</div>}
       </div>
-      {exec && (
+      {exec ? (
         <section className="mt-10 border-t border-line pt-8">
           <h2 className="text-xs uppercase tracking-[0.2em] text-mute">Your sales advisor</h2>
           <p className="mt-3 font-serif text-2xl">{exec.name}</p>
           {exec.phone?.trim() && !/^0+$/.test(exec.phone.replace(/\D/g, '')) && <a href={`tel:${exec.phone.replace(/\s/g, '')}`} className="mt-1 inline-block text-sm text-moss underline underline-offset-4">{exec.phone}</a>}
           <p className="mt-2 text-sm text-mute">Your conversation so far has been shared, so you will not need to repeat yourself.</p>
         </section>
+      ) : (
+        <section className="mt-10 border-t border-line pt-8"><h2 className="text-xs uppercase tracking-[0.2em] text-mute">Your sales advisor</h2><p className="mt-3 text-sm leading-relaxed text-mute">A sales advisor will be assigned and will confirm the visit details with you.</p></section>
       )}
 
       <section className="mt-10 border-t border-line pt-8">
