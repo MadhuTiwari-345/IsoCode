@@ -83,6 +83,7 @@ async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
   })
   console.info('HOMIQ openSlots: slots found', { count: slots.docs.length })
   if (!slots.docs.length) return []
+  const projectRecord = await getProject(projectId)
   const booked = await payload.find({
     collection: 'bookings', depth: 0, limit: 1000, pagination: false, overrideAccess: true,
     where: { and: [{ slot: { in: slots.docs.map((s) => s.id) } }, { status: { in: ['booked', 'attended'] } }] },
@@ -94,7 +95,7 @@ async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
     .map((s) => ({ id: s.id, remaining: remainingCapacity(s.capacity, Array.from({ length: used.get(s.id) ?? 0 }, () => ({ status: 'booked' }))), startsAt: s.startsAt }))
     .filter((s) => s.remaining > 0)
     .slice(0, 8)
-    .map((s) => ({ id: s.id, remaining: s.remaining, label: fmtDateTime(s.startsAt), day: fmtDay(s.startsAt), time: fmtTime(s.startsAt), demoOnly: (s as any).demoOnly === true }))
+    .map((s) => ({ id: s.id, remaining: s.remaining, label: fmtDateTime(s.startsAt), day: fmtDay(s.startsAt), time: fmtTime(s.startsAt), demoOnly: Boolean((s as any).demoOnly || (projectRecord as any)?.demoOnly) }))
 }
 
 async function pickExec(project: string | undefined, lang: Lang): Promise<SalesExecutive | null> {
@@ -419,7 +420,8 @@ export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: strin
     collection: 'leads', id: lead.id, overrideAccess: true,
     data: { stage: 'visit_booked', assignedTo: exec?.id, summary, handedOffAt: new Date().toISOString() },
   })
-  const confirmation = slot.demoOnly
+  const demoOnly = Boolean((slot as any).demoOnly || (project as any)?.demoOnly)
+  const confirmation = demoOnly
     ? `Demo booking recorded for ${when} at ${project?.name ?? 'the selected project'}. This is simulated availability, not a real Company A appointment. No site pin or reminder messages will be sent.`
     : t(lang, 'booked', { when, project: project?.name ?? '', exec: exec?.name ?? 'Our sales advisor' })
   return reply(ctx, {
