@@ -49,21 +49,21 @@ This status is based on a review of the repository's `main` branch. A screen ren
 | Requirement | Current implementation | Assessment |
 | --- | --- | --- |
 | Public residential discovery | Home, project list and project detail pages | Implemented with launch placeholders when project records are absent |
-| Unified lead records | Payload Leads collection with source, stage, contact and ownership fields | Implemented for records created through the application; external portal and hoarding ingestion is not connected |
-| Duplicate checks | Normalized phone and email lookup on lead creation | Basic check implemented; concurrent duplicate submissions need stronger protection |
-| English, Hindi and Gujarati chat | Language selection and translated prompts | Implemented as guided chat |
-| Answers from an approved fact sheet | Topic detection and lookup in Payload Fact Sheet | Basic deterministic lookup, not a connected generative AI agent |
+| Unified lead records | Payload Leads collection with source, stage, contact and ownership fields | Implemented for website-created and manually imported records; external portal/hoarding connectors are not connected |
+| Duplicate checks | Normalized phone and email lookup on lead creation | Implemented as a pre-insert duplicate flag/link; concurrent submissions still need a database-level uniqueness strategy |
+| English, Hindi and Gujarati chat | Language selection, translated prompts and fact-answer language selection | Implemented as guided chat |
+| Answers from an approved fact sheet | Deterministic fact lookup plus Gemini fallback constrained to approved project fact-sheet entries | Implemented as a guarded generative fallback; empty/missing facts return unsupported and trigger human review |
 | Budget and needs capture | BHK and budget choices update the lead | Implemented as a guided flow |
-| Human handoff | Executive selection, lead summary and chat transcript | Partial; unanswered questions are flagged, but automatic assignment and notification need completion |
-| Real free visit slots | Slot list checks current bookings and capacity | Partial; the current post-create capacity check is not atomic under concurrent requests |
+| Human handoff | Least-loaded active executive selection, lead summary, persisted transcript and review flag | Assignment and summary are implemented; there is no external staff notification integration |
+| Real free visit slots | Future open-slot query plus unique per-seat claim key enforced by MongoDB's unique index; booking retries collisions | Server-side capacity guard is implemented; concurrency behavior still needs an integration test against the production database |
 | Location pin | Visit confirmation page reads project coordinates | Depends on verified project address and coordinates being entered |
-| Reminders at 1 day and 2 hours | Reminder timestamps are stored on booking records | Not delivered; a scheduler and messaging provider are still required |
-| Sales dashboard | Response, visit, show-up and source cost calculations | UI exists; current response-time data is unreliable because buyer registration sets it to zero |
-| Admin fact sheet and slot editor | Payload collections are available in the admin | Collection-level editing exists; a tailored sales-facing editor and full workflow need validation |
-| Sample client records | No occurrences of the three supplied lead IDs were found in the repository source | Seed data still needs to be added and verified |
+| Reminders at 1 day and 2 hours | Due-time fields, protected reminder endpoint and GitHub Actions five-minute schedule | Mock audit delivery only; requires `HOMIQ_BASE_URL` and `CRON_SECRET` GitHub Actions secrets; no SMS/WhatsApp provider is connected |
+| Sales dashboard | Median first response, 48-hour unreached rate, visit conversion, show-up rate and source-level CPL/CPV | Calculations and UI are implemented; production accuracy depends on valid response timestamps, attendance updates and source-spend inputs |
+| Admin fact sheet and slot editor | Sales-head-only fact and visit-slot management actions plus Payload collections | Implemented for the core editor flow; verify access with separate sales-executive and sales-head accounts |
+| Sample client records | Idempotent seed script for LD-58210, LD-58211 and LD-58224 | Seed script is present; it must be run only after confirming Project 1/2 mapping. Uses non-contactable placeholder phones and consent=false |
 | WhatsApp | Consent field exists | No live WhatsApp Business integration |
 
-**Important distinction:** the current chat is a deterministic guided assistant. It detects supported topics and retrieves approved fact-sheet entries. The repository does not currently contain a configured LLM provider or a tool-calling AI agent. This is safer than inventing answers, but it does not yet satisfy the full AI-agent requirement as written.
+**Important distinction:** the chat combines a deterministic guided qualification flow with a Gemini fact-answer fallback. Gemini receives only approved fact-sheet entries for the selected project and must return a structured supported/unsupported result. Unsupported questions are escalated. Visit booking is a separate server-side action with database-enforced seat claims; it is not an LLM function-calling tool invocation. This satisfies a guarded AI assistant plus booking workflow, but should be described honestly as a constrained AI integration rather than a fully autonomous tool-calling agent.
 
 The project catalogue includes clearly labelled launch placeholders for Project 01 and Project 02. They are not verified project identities. Real project names, addresses, map coordinates, RERA registration numbers, inventory and project-specific prices must be supplied by the client before public launch. Do not replace these placeholders with invented claims.
 
@@ -169,7 +169,7 @@ sequenceDiagram
     SA-->>UI: Answer from stored facts or request human follow-up
 ```
 
-This sequence describes the current guided implementation. It does not represent a live LLM tool call. Unknown topics are flagged for review rather than answered from general model knowledge.
+This sequence describes the guided qualification flow. Free-form questions first use deterministic approved facts, then a Gemini response constrained to the same project's approved fact sheet. Unknown topics, unsupported answers and model failures are flagged for human review rather than answered from general model knowledge.
 
 ### Site visit booking sequence
 
@@ -187,12 +187,12 @@ sequenceDiagram
     Buyer->>UI: Select a slot
     UI->>SA: bookVisit
     SA->>DB: Create booking
-    DB->>DB: Recheck capacity after insert
+    DB->>DB: Claim unique slot seat key before insert
     SA->>DB: Save summary and salesperson assignment
     SA-->>UI: Return booking confirmation
 ```
 
-**Booking reliability warning:** the current capacity guard runs after a booking is inserted. Two simultaneous requests can both observe spare capacity before either post-insert check completes. This is not an atomic reservation. Do not describe the current implementation as guaranteeing zero double bookings until slot allocation is moved to an atomic database operation or a serialized reservation mechanism and concurrency tests pass.
+**Booking reliability:** each slot capacity unit maps to a deterministic `claimKey` protected by a MongoDB unique index. Concurrent requests may race for the same seat, but only one insert can own that key; the booking action retries unique-key collisions and rechecks availability. This is the database-level no-double-claim guard. The pure helper tests pass only if run locally; a concurrent integration test against the configured MongoDB database is still required before claiming production concurrency has been verified.
 
 ### Data flow at a glance
 
@@ -244,7 +244,7 @@ The experience is organized around two entry points: a buyer-facing website and 
 | Lead detail | Review buyer profile, duplicate links, handoff summary and chat history |
 | Site visits | Review bookings and mark attendance, no-show or cancellation |
 
-The Payload admin provides collection editors for project records, the fact sheet, visit slots, sales executives and source spend. These editors are part of the CMS administration layer rather than a separate custom sales screen.
+The Payload admin provides collection editors for project records, the fact sheet, visit slots, sales executives and source spend. Sales-head-only server actions also support the core fact and slot editing workflow. Reminder delivery is simulated and must not be presented as real SMS or WhatsApp delivery.
 
 ### Wireframe: buyer discovery
 
