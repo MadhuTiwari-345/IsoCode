@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
             kind: job.kind,
             channel: 'mock',
             status,
-            scheduledFor: job.dueField === 'reminderDayBefore' ? booking.reminderDayBefore : booking.reminderTwoHours,
+            scheduledFor: (job.dueField === 'reminderDayBefore' ? booking.reminderDayBefore : booking.reminderTwoHours) ?? undefined,
             deliveredAt: allowed ? now.toISOString() : undefined,
             body,
           },
