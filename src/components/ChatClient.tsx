@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useSession } from './AuthMenu'
 import { LANGS, t, type Lang } from '@/lib/chat-i18n'
-import { askQuestion, bookVisit, chooseOption, registerBuyer, type Chip, type Ctx, type Reply, type SlotOption } from '@/app/(frontend)/chat/actions'
+import { askQuestion, bookVisit, chooseOption, registerBuyer, setConversationLanguage, type Chip, type Ctx, type Reply, type SlotOption } from '@/app/(frontend)/chat/actions'
 
 type Msg = { role: 'assistant' | 'buyer'; text: string }
 type Step = 'lang' | 'register' | 'flow'
@@ -43,6 +43,13 @@ export default function ChatClient() {
     setStep('register')
   }
 
+  const changeLang = (l: Lang) => start(async () => {
+    const next = await setConversationLanguage({ ctx, lang: l })
+    setCtx(next)
+    // Keep the transcript exactly as it was written. Only new replies and controls
+    // use the newly selected language; never silently rewrite old turns.
+  })
+
   const submitRegister = (e: React.FormEvent) => {
     e.preventDefault()
     const src = new URLSearchParams(window.location.search).get('src') ?? undefined
@@ -73,7 +80,7 @@ export default function ChatClient() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-ink text-sm font-semibold text-white">H</span>
           <div><p className="text-sm font-semibold tracking-wide">HOMIQ concierge</p><p className="mt-0.5 text-[11px] text-mute">Brief-backed information · Ahmedabad</p></div>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-moss-soft px-3 py-1.5 text-[10px] font-medium text-moss"><span className="h-1.5 w-1.5 rounded-full bg-moss" /> Here to help</span>
+        <div className="flex items-center gap-2"><select aria-label="Conversation language" value={lang} disabled={pending} onChange={(e) => changeLang(e.target.value as Lang)} className="rounded-full border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-moss"><option value="en">English</option><option value="hi">हिन्दी</option><option value="gu">ગુજરાતી</option></select><span className="hidden items-center gap-1.5 rounded-full bg-moss-soft px-3 py-1.5 text-[10px] font-medium text-moss sm:inline-flex"><span className="h-1.5 w-1.5 rounded-full bg-moss" /> Here to help</span></div>
       </div>
       <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain py-6 sm:py-8">
         {msgs.map((m, i) => (
@@ -102,7 +109,7 @@ export default function ChatClient() {
 
         {slots.length > 0 && !code && (
           <div className="rise space-y-4">
-            {slots.some((slot) => slot.demoOnly) && <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">Prototype only: these are simulated sample slots, not confirmed Company A availability. Do not travel based on this demo booking.</p>}
+
             {Object.entries(slots.reduce<Record<string, SlotOption[]>>((acc, x) => { (acc[x.day] ??= []).push(x); return acc }, {})).map(([day, list]) => (
               <div key={day}>
                 <p className="mb-2 text-xs uppercase tracking-wider text-mute">{day}</p>
