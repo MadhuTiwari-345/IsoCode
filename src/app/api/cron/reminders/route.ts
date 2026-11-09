@@ -53,6 +53,12 @@ export async function GET(request: NextRequest) {
         ? `HOMIQ visit reminder: ${lead.name}, your site visit at ${project.name} is scheduled for ${when}. This is a simulated delivery for product testing; no SMS or WhatsApp was sent.`
         : `Reminder not sent for ${lead.name}: ${status}. Contact permissions must be respected.`
 
+      const scheduledForValue = job.dueField === 'reminderDayBefore' ? booking.reminderDayBefore : booking.reminderTwoHours
+      if (typeof scheduledForValue !== 'string') {
+        skipped += 1
+        continue
+      }
+
       try {
         await payload.create({
           collection: 'reminder-deliveries',
@@ -65,7 +71,7 @@ export async function GET(request: NextRequest) {
             kind: job.kind,
             channel: 'mock',
             status,
-            scheduledFor: (job.dueField === 'reminderDayBefore' ? booking.reminderDayBefore : booking.reminderTwoHours) ?? undefined,
+            scheduledFor: scheduledForValue,
             deliveredAt: allowed ? now.toISOString() : undefined,
             body,
           },
