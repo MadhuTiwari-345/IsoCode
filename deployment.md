@@ -68,13 +68,13 @@ After rotating `GEMINI_API_KEY`, save the replacement in Vercel and redeploy Pro
 
 ## 4. Demo data
 
-The seed script expects Project 01 and Project 02 records to exist. It seeds the three leads supplied in the original brief, a historical example booking, approved brief-backed facts and future **demo-only** visit slots.
+The seed script expects Project 01 and Project 02 records to exist. It seeds the three leads supplied in the original brief, a historical example booking, approved brief-backed facts, illustrative Ahmedabad map coordinates, a simulated advisor and future **demo** visit slots. The project, map, advisor and calendar values are synthetic reviewer fixtures, not verified Company A data.
 
 ```bash
 pnpm seed:demo
 ```
 
-Run this only against a disposable demo database or after reviewing existing records. It does not import the separate 18-row PDF dataset. Placeholder contact values are not contactable and have no consent. Demo slots are not Company A's real calendar.
+Run this only against a disposable demo database or after reviewing existing records. It does not import the separate 18-row PDF dataset. Placeholder contact values are not contactable and have no consent. The seeded slots are persisted and bookable within the demo environment, but they are not Company A's real calendar or a confirmed real-world appointment. The map points are illustrative and must not be used for travel directions.
 
 ## 5. Reviewer accounts
 
@@ -186,3 +186,33 @@ Therefore:
 - Store/contact buyers only with appropriate consent and honour opt-outs.
 - WhatsApp must remain disabled until opt-in templates and provider callbacks are configured.
 - The product is a focused lead-to-visit workflow, not a full CRM; payments, allotments and outbound voice are out of scope.
+
+
+## 11. Reviewer walkthrough
+
+The demo environment is intended to support a complete product walkthrough with separate role accounts:
+
+1. Open the public website and browse both demo residences.
+2. Register a buyer account, accept the enquiry consent and select a chat language.
+3. Complete the guided needs/budget questions. Ask a supported question, then ask for a fact that is absent to verify the human fallback.
+4. Request a site visit and choose a future seeded demo slot. Confirm that a booking reference is created and that the slot's remaining capacity changes.
+5. Open **My visits** and inspect the assigned simulated advisor, saved conversation context and reminder schedule.
+6. Sign in as the executive and inspect the assigned lead and transcript.
+7. Sign in as the sales head and inspect flagged conversations, lead sources, visit outcomes and dashboard calculations.
+
+Use the three separately provisioned accounts from section 5. Do not reuse the buyer account as a staff account. Reviewer passwords are intentionally not published in this repository.
+
+## 12. Demo facts versus live operations
+
+The demo is designed to be fully clickable and backed by the application database. Synthetic data exists to make the experience reviewable; it is not a substitute for client-authorized operating data.
+
+| Capability | Demo behavior | Required before real customer use |
+|---|---|---|
+| Project details | Project 01 / Project 02 with brief-level portfolio facts | Verified project-specific fact sheets, RERA IDs and approved marketing copy |
+| Map | Illustrative Ahmedabad map coordinates | Verified site address, entrance and coordinates |
+| Visit booking | Persisted future slots with capacity enforcement | Live sales-head-maintained availability and operational confirmation |
+| Sales handoff | Simulated advisor with saved lead context | Actual staff roster, assignment rules and contact channels |
+| Reminders | Scheduled audit processing with mock delivery | Provider integration, approved templates, consent and delivery callbacks |
+| Dashboard | Demo records and explicitly identified sample inputs | Reconciled production spend, response timestamps and attendance outcomes |
+
+Do not tell a buyer that a synthetic slot, map point, RERA placeholder or simulated advisor is a verified Company A fact. Keep the booking flow demonstrable without presenting the demo appointment as a real-world visit commitment.
