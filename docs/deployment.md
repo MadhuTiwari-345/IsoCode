@@ -91,3 +91,16 @@ Create fact-sheet entries for supported topics and translations. Create future v
 - Reminder timestamps are stored on bookings. A production scheduler and messaging provider must be configured before reminders are considered delivered.
 - WhatsApp Business is not enabled. It requires a business provider, credentials, approved templates and buyer opt-in.
 - Review the live deployment and its connected database before using it with real buyers.
+
+
+## Seed the client sample leads
+
+After the two client-verified project records exist in Payload Admin and the database is configured, run:
+
+```bash
+pnpm seed:demo
+```
+
+The script is idempotent for lead IDs LD-58210, LD-58211 and LD-58224. It maps Project 1 and Project 2 to the first two existing projects sorted by name. Review that mapping before running if the project ordering is not the intended mapping. It uses a deliberately invalid/non-contactable phone placeholder and keeps consent and WhatsApp opt-in false. It does not fabricate RERA facts or salesperson identities.
+
+The seed also creates the supplied historical Hardik visit booking. It does not invent a visit date for Kavita because the brief only says "Visited".
