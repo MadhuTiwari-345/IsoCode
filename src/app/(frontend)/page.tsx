@@ -85,7 +85,7 @@ export default async function HomePage() {
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-moss">Visit in person</p>
             <h2 className="mt-3 font-serif text-5xl font-medium leading-none tracking-tight md:text-6xl">See the light before you decide.</h2>
-            <p className="mt-6 max-w-md leading-relaxed text-mute">Choose from simulated prototype slots. The system records reminders for one day and two hours before; message delivery is mocked, and real location details must be confirmed by the sales team.</p>
+            <p className="mt-6 max-w-md leading-relaxed text-mute">Choose a displayed time to request a visit. Until Company A publishes its confirmed schedule, available times are for demonstration; a sales advisor will confirm the appointment and location before you travel.</p>
             <ol className="mt-8 space-y-4">
               {steps.map(([h, d], i) => <li key={h} className="flex gap-4"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-moss-soft text-sm text-moss">{i + 1}</span><div><p className="font-medium">{h}</p><p className="text-sm leading-relaxed text-mute">{d}</p></div></li>)}
             </ol>
