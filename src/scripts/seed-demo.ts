@@ -16,6 +16,22 @@ if (projects.docs.length < 2) {
 
 const [project1, project2] = projects.docs
 
+// Only facts explicitly present in the interview brief are seeded. These project
+// records and future visit slots are explicitly demo-only.
+for (const project of [project1, project2]) {
+  await payload.update({ collection: 'projects', id: project.id, data: { demoOnly: true } as any, overrideAccess: true })
+  const facts = [
+    { topic: 'price', answerEn: 'The client brief gives a combined portfolio price range of ₹65 lakh to ₹1.2 crore across both projects. It does not provide a project-specific price or final offer. A sales advisor must confirm the current price. HOMIQ never quotes final prices or discounts.', answerHi: 'क्लाइंट के ब्रीफ के अनुसार, दोनों परियोजनाओं की संयुक्त मूल्य सीमा ₹65 लाख से ₹1.2 करोड़ है। किसी एक परियोजना की अलग कीमत या अंतिम ऑफ़र नहीं दिया गया है। वर्तमान कीमत की पुष्टि बिक्री सलाहकार करेंगे। HOMIQ अंतिम कीमत या छूट नहीं बताता।', answerGu: 'ક્લાયન્ટના બ્રીફ મુજબ, બંને પ્રોજેક્ટની સંયુક્ત કિંમતની રેન્જ ₹65 લાખથી ₹1.2 કરોડ છે. કોઈ એક પ્રોજેક્ટની અલગ કિંમત અથવા અંતિમ ઓફર આપવામાં આવી નથી. હાલની કિંમતની પુષ્ટિ સેલ્સ સલાહકાર કરશે. HOMIQ અંતિમ કિંમત અથવા ડિસ્કાઉન્ટ જણાવતું નથી.' },
+    { topic: 'configs', answerEn: 'The client brief states that the developer has two live residential projects with 2 BHK and 3 BHK homes, and 420 apartments in total. It does not specify project-wise inventory or availability. A sales advisor must confirm those details.', answerHi: 'क्लाइंट के ब्रीफ के अनुसार, डेवलपर के दो चालू आवासीय प्रोजेक्ट हैं जिनमें 2 BHK और 3 BHK घर हैं और कुल 420 अपार्टमेंट हैं। प्रत्येक प्रोजेक्ट का अलग इन्वेंटरी या उपलब्धता विवरण नहीं दिया गया है। बिक्री सलाहकार इसकी पुष्टि करेंगे।', answerGu: 'ક્લાયન્ટના બ્રીફ મુજબ, ડેવલપરના બે ચાલુ રહેણાંક પ્રોજેક્ટ છે જેમાં 2 BHK અને 3 BHK ઘરો છે અને કુલ 420 એપાર્ટમેન્ટ છે. દરેક પ્રોજેક્ટની અલગ ઇન્વેન્ટરી અથવા ઉપલબ્ધતાની માહિતી આપવામાં આવી નથી. સેલ્સ સલાહકાર તેની પુષ્ટિ કરશે.' },
+    { topic: 'location', answerEn: 'Company A is based in Ahmedabad. The exact address and verified map pin for this project were not included in the interview brief. A sales advisor must confirm the location before a real visit.', answerHi: 'Company A अहमदाबाद में स्थित है। इंटरव्यू ब्रीफ में इस प्रोजेक्ट का सटीक पता और सत्यापित मैप पिन नहीं दिया गया है। वास्तविक विज़िट से पहले बिक्री सलाहकार स्थान की पुष्टि करेंगे।', answerGu: 'Company A અમદાવાદમાં સ્થિત છે. ઇન્ટરવ્યૂ બ્રીફમાં આ પ્રોજેક્ટનું ચોક્કસ સરનામું અને ચકાસાયેલો મેપ પિન આપવામાં આવ્યો નથી. વાસ્તવિક મુલાકાત પહેલાં સેલ્સ સલાહકાર સ્થાનની પુષ્ટિ કરશે.' },
+  ] as const
+  for (const fact of facts) {
+    const existing = await payload.find({ collection: 'fact-sheet', where: { and: [{ project: { equals: project.id } }, { topic: { equals: fact.topic } }] }, limit: 1, depth: 0, overrideAccess: true })
+    if (!existing.docs.length) await payload.create({ collection: 'fact-sheet', data: { project: project.id, ...fact } as any, overrideAccess: true })
+  }
+}
+
+
 // Only facts explicitly present in the interview brief are seeded. These records
 // and future visit slots are marked demo-only, not client-verified data.
 for (const project of [project1, project2]) {
@@ -123,6 +139,21 @@ if (!existingBooking.docs.length) {
     overrideAccess: true,
   })
   await payload.update({ collection: 'visit-slots', id: slot.id, data: { isOpen: false }, overrideAccess: true })
+}
+
+// Future availability is simulated for prototype testing, never a real client calendar.
+const nowIST = new Date(Date.now() + 330 * 60_000)
+const todayIST = Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate())
+for (const project of [project1, project2]) {
+  for (const dayOffset of [2, 3, 4]) {
+    const day = new Date(todayIST + dayOffset * 24 * 60 * 60_000)
+    const date = [day.getUTCFullYear(), String(day.getUTCMonth() + 1).padStart(2, '0'), String(day.getUTCDate()).padStart(2, '0')].join('-')
+    for (const time of ['11:00', '15:00']) {
+      const startsAt = new Date(date + 'T' + time + ':00+05:30').toISOString()
+      const existingSlot = await payload.find({ collection: 'visit-slots', where: { and: [{ project: { equals: project.id } }, { startsAt: { equals: startsAt } }] }, limit: 1, depth: 0, overrideAccess: true })
+      if (!existingSlot.docs.length) await payload.create({ collection: 'visit-slots', data: { project: project.id, startsAt, durationMinutes: 60, capacity: 1, isOpen: true, demoOnly: true } as any, overrideAccess: true })
+    }
+  }
 }
 
 // Future availability is simulated for prototype testing, never a real client calendar.
