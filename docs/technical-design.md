@@ -175,3 +175,14 @@ Not yet verified as complete:
 - Dashboard accuracy against a representative operational dataset.
 
 The live app should be treated as a review build until these items are completed and tested.
+
+
+## Concurrency and demo-data updates
+
+New bookings choose a candidate seat key in the booking hook. The `bookings.claimKey` field has a MongoDB unique index, so concurrent inserts cannot commit the same slot seat. The chat booking action retries unique-key collisions and re-reads availability. Cancelling a booking or marking it no-show releases the seat by replacing its key with a unique tombstone. Legacy active bookings without a key are counted conservatively when allocating new seats.
+
+This mechanism depends on MongoDB successfully creating the unique index. Before enabling it on a database that already contains bookings, verify the index build and backfill or reconcile any legacy records if the database reports duplicate/missing-key conflicts. A successful application build alone does not prove the production index exists; run a concurrent booking test against the connected database.
+
+The demo seed script maps the brief's Project 1 and Project 2 labels to the first two existing project records sorted by name. It deliberately does not create project facts, RERA numbers, coordinates, salesperson identities, or real phone numbers. The three sample leads use a non-contactable placeholder phone and have DPDP consent and WhatsApp opt-in set to false. Hardik's supplied visit time is seeded as a historical booking; Kavita's supplied "Visited" status is represented on the lead because the brief provides no visit timestamp.
+
+The assistant remains a deterministic fact-sheet lookup and guided conversation. No LLM provider is configured in this repository, so it must not be described as a connected AI agent. Reminder timestamps are stored, but no scheduled delivery worker is configured.
