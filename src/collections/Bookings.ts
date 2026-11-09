@@ -13,12 +13,12 @@ export const Bookings: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      async ({ data, operation, req }) => {
+      async ({ data, operation, req, context }) => {
         if (!data || operation !== 'create') return data
         const slot = await req.payload.findByID({ collection: 'visit-slots', id: data.slot, depth: 0, req, overrideAccess: true })
         if (!slot.isOpen) throw new Error('This slot is closed.')
         const start = new Date(slot.startsAt).getTime()
-        if (start < Date.now()) throw new Error('This slot is in the past.')
+        if (start < Date.now() && context?.allowHistoricalDemo !== true) throw new Error('This slot is in the past.')
         data.project = typeof slot.project === 'object' ? (slot.project as any).id : slot.project
         data.code = data.code || `SV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
         data.status = 'booked'
