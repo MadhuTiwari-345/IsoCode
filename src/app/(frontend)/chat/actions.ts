@@ -76,26 +76,22 @@ async function getProject(id?: string): Promise<Project | null> {
 async function openSlots(projectId: string, lang: Lang): Promise<SlotOption[]> {
   const payload = await getPayloadClient()
   const now = new Date().toISOString()
-  console.info('HOMIQ openSlots: querying slots', { projectId, now })
   const slots = await payload.find({
     collection: 'visit-slots', depth: 0, limit: 60, sort: 'startsAt', overrideAccess: true,
-    where: { and: [{ project: { equals: projectId } }, { isOpen: { equals: true } }, { startsAt: { greater_than: now } }] },
+    where: { and: [{ project: { equals: projectId } }, { isOpen: { equals: true } }, { demoOnly: { equals: false } }, { startsAt: { greater_than: now } }] },
   })
-  console.info('HOMIQ openSlots: slots found', { count: slots.docs.length })
   if (!slots.docs.length) return []
-  const projectRecord = await getProject(projectId)
   const booked = await payload.find({
     collection: 'bookings', depth: 0, limit: 1000, pagination: false, overrideAccess: true,
     where: { and: [{ slot: { in: slots.docs.map((s) => s.id) } }, { status: { in: ['booked', 'attended'] } }] },
   })
-  console.info('HOMIQ openSlots: bookings found', { count: booked.docs.length })
   const used = new Map<string, number>()
   for (const b of booked.docs) used.set(b.slot as string, (used.get(b.slot as string) ?? 0) + 1)
   return slots.docs
     .map((s) => ({ id: s.id, remaining: remainingCapacity(s.capacity, Array.from({ length: used.get(s.id) ?? 0 }, () => ({ status: 'booked' }))), startsAt: s.startsAt }))
     .filter((s) => s.remaining > 0)
     .slice(0, 8)
-    .map((s) => ({ id: s.id, remaining: s.remaining, label: fmtDateTime(s.startsAt), day: fmtDay(s.startsAt), time: fmtTime(s.startsAt), demoOnly: Boolean((s as any).demoOnly || (projectRecord as any)?.demoOnly) }))
+    .map((s) => ({ id: s.id, remaining: s.remaining, label: fmtDateTime(s.startsAt), day: fmtDay(s.startsAt), time: fmtTime(s.startsAt), demoOnly: false }))
 }
 
 async function pickExec(project: string | undefined, lang: Lang): Promise<SalesExecutive | null> {
@@ -165,6 +161,15 @@ export async function registerBuyer(input: { ctx: Ctx; name: string; phone: stri
   }, `${name} · +91 ${phone}`)
 }
 
+export async function setConversationLanguage(input: { ctx: Ctx; lang: Lang }): Promise<Ctx> {
+  const ctx = cleanCtx({ ...input.ctx, lang: input.lang })
+  if (ctx.leadId) {
+    const payload = await getPayloadClient()
+    await payload.update({ collection: 'leads', id: ctx.leadId, data: { language: ctx.lang }, overrideAccess: true })
+  }
+  return ctx
+}
+
 export async function chooseOption(input: { ctx: Ctx; action: string; value?: string; label?: string }): Promise<Reply> {
   const ctx = cleanCtx(input.ctx)
   const lang = ctx.lang
@@ -217,7 +222,7 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
   if (input.action === 'visit' && ctx.projectId) {
     const project = await getProject(ctx.projectId)
     const slots = await openSlots(ctx.projectId, lang)
-    if (!slots.length) return reply(ctx, { messages: [t(lang, 'noSlots')] }, label)
+    if (!slots.length) return handoffToPerson(ctx, 'No verified future visit slots are currently published. Please arrange a visit with the buyer.', label)
     return reply(ctx, { messages: [t(lang, 'pickSlot', { project: project?.name ?? '' })], slots }, label)
   }
 
@@ -323,7 +328,7 @@ async function geminiFactAnswer(projectId: string | undefined, question: string,
   let lastError = ''
   // Use the primary stable model first, then stable fallbacks when Google
   // reports temporary capacity pressure (429/503) or a short timeout.
-  for (const model of ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite']) {
+  for (const model of ['gemini-3.8-flash']) {
     try {
       const candidate = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: 'POST',
@@ -333,7 +338,7 @@ async function geminiFactAnswer(projectId: string | undefined, question: string,
           contents: [{ role: 'user', parts: [{ text: JSON.stringify({ question, approvedFacts }) }] }],
           generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300, thinkingConfig: { thinkingLevel: 'low' } },
         }),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(3500),
       })
       if (candidate.ok) {
         response = candidate
