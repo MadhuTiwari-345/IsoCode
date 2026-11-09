@@ -141,7 +141,7 @@ Status checked against the current repository and connected service records on 9
 | Check | Status | Evidence / next action |
 | --- | --- | --- |
 | Only `main` branch remains | **Verified** | GitHub branch API returned only `main`; obsolete `standard-payload-postgres` is absent |
-| Latest CI | **Passed** | [Run 42618682477](https://github.com/MadhuTiwari-345/IsoCode/actions/runs/42618682477) |
+| Latest CI | **Passed** | [Run 42621394254](https://github.com/MadhuTiwari-345/IsoCode/actions/runs/42621394254) |
 | Latest Vercel production deployment | **Ready** | Commit `aa93b4e19625c3ae54bb519ee1722b7dffe441c6) |
 | Reminder endpoint auth | **Passed** | Authenticated manual workflow returned `ok: true` |
 | Due reminder processing | **Not exercised in last run** | Last run had zero due jobs; test with due demo records on staging |
