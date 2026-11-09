@@ -39,7 +39,7 @@ HOMIQ is a residential discovery and sales-operations product for a developer ma
 - **Repository:** `main` is the only active branch.
 - **Reviewer journeys:** Buyer, executive and sales-head accounts and full authenticated end-to-end journeys are not yet verified.
 - **Booking concurrency:** The unique seat-claim index is part of the implementation, but concurrent booking behavior still needs an integration test against a staging database.
-- **Data integrity:** Project records remain unpublished until the client verifies RERA registration, addresses, location coordinates and other project facts.
+- **Reviewer demo data:** `pnpm seed:demo` marks Project 01 and Project 02 as demo catalogue entries, adds clearly labelled sample Ahmedabad map coordinates and future sample visit slots, and seeds the three brief leads. The demo map pin and schedule are illustrative only; they are not Company A's real sites or calendar. Demo RERA text is explicitly not a registration.
 
 The project deliberately distinguishes working product flows from integrations or client data that are not yet available. See [deployment.md](deployment.md) for setup and operational limits, and [the Technical Design Document](docs/Technical-Design-Document.md) for architecture and assumptions.
 
@@ -78,12 +78,12 @@ This status is based on a review of the repository's `main` branch. A screen ren
 | Reminders at 1 day and 2 hours | Due-time fields, protected reminder endpoint and GitHub Actions five-minute schedule | Mock audit delivery only; requires `HOMIQ_BASE_URL` and `CRON_SECRET` GitHub Actions secrets; no SMS/WhatsApp provider is connected |
 | Sales dashboard | Median first response, 48-hour unreached rate, visit conversion, show-up rate and source-level CPL/CPV | Calculations and UI are implemented; production accuracy depends on valid response timestamps, attendance updates and source-spend inputs |
 | Admin fact sheet and slot editor | Sales-head-only fact and visit-slot management actions plus Payload collections | Implemented for the core editor flow; verify access with separate sales-executive and sales-head accounts |
-| Sample client records | Idempotent seed script for LD-58210, LD-58211 and LD-58224 | Seed script is present; it must be run only after confirming Project 1/2 mapping. Uses non-contactable placeholder phones and consent=false |
+| Reviewer sample records | Idempotent `pnpm seed:demo` for LD-58210, LD-58211 and LD-58224, two demo catalogue entries, and capacity-limited future slots | Ready for reviewer walkthrough. Placeholder phones are non-contactable and consent/WhatsApp opt-in remain false. Demo map coordinates and availability are fictional and labelled as such |
 | WhatsApp | Consent field exists | No live WhatsApp Business integration |
 
 **Important distinction:** the chat combines a deterministic guided qualification flow with a Gemini fact-answer fallback. Gemini receives only approved fact-sheet entries for the selected project and must return a structured supported/unsupported result. Unsupported questions are escalated. Visit booking is a separate server-side action with database-enforced seat claims; it is not an LLM function-calling tool invocation. This satisfies a guarded AI assistant plus booking workflow, but should be described honestly as a constrained AI integration rather than a fully autonomous tool-calling agent.
 
-The project catalogue includes clearly labelled launch placeholders for Project 01 and Project 02. They are not verified project identities. Real project names, addresses, map coordinates, RERA registration numbers, inventory and project-specific prices must be supplied by the client before public launch. Do not replace these placeholders with invented claims.
+The reviewer environment intentionally uses Project 01 and Project 02 as demo catalogue entries. The seed creates an illustrative Ahmedabad map point and sample future visit schedule so the reviewer can complete the booking flow. These are invented demonstration values, not Company A site information, real availability or statutory registrations. The RERA field is explicitly marked as demo-only. Replace the sample catalogue with client-approved records before using HOMIQ for real sales.
 
 ## 🎨 Visual identity
 
