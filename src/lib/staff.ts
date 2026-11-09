@@ -15,7 +15,7 @@ export const fmtDay = (iso: string | Date) => formatDate(iso, { weekday: 'long',
 export const fmtTime = (iso: string | Date) => formatDate(iso, { hour: 'numeric', minute: '2-digit' })
 
 export const SOURCE_LABEL: Record<string, string> = {
-  portal_99acres: '99acres', portal_magicbricks: 'MagicBricks', social_ads: 'Social ads', website: 'Website', hoarding: 'Hoarding',
+  property_portal: 'Property portal', portal_99acres: '99acres', portal_magicbricks: 'MagicBricks', social_ads: 'Social ads', website: 'Website', hoarding: 'Hoarding',
 }
 export const STAGE_LABEL: Record<string, string> = {
   new: 'New', engaged: 'Engaged', qualified: 'Qualified', visit_booked: 'Visit booked', visited: 'Visited', lost: 'Lost',
