@@ -3,6 +3,7 @@ import { isStaff } from './access'
 import { normalizePhone } from '../lib/phone'
 
 export const SOURCES = [
+  { label: 'Property portal', value: 'property_portal' },
   { label: '99acres', value: 'portal_99acres' },
   { label: 'MagicBricks', value: 'portal_magicbricks' },
   { label: 'Social media ads', value: 'social_ads' },
