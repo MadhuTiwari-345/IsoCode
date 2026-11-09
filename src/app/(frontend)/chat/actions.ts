@@ -182,12 +182,13 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
     const projects = (await payload.find({ collection: 'projects', where: { approvedForPublic: { equals: true } }, depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
     const fits = projects.filter((p) => p.priceFromLakh <= hi && p.priceToLakh >= lo && (!ctx.bhk || (p.configurations as string[] | undefined)?.includes(ctx.bhk)))
     const mid = (lo + hi) / 2
-    const ranked = (fits.length ? fits : projects).slice().sort((a, b) => Math.abs((a.priceFromLakh + a.priceToLakh) / 2 - mid) - Math.abs((b.priceFromLakh + b.priceToLakh) / 2 - mid))
+    const ranked = fits.slice().sort((a, b) => Math.abs((a.priceFromLakh + a.priceToLakh) / 2 - mid) - Math.abs((b.priceFromLakh + b.priceToLakh) / 2 - mid))
     const best = ranked[0]
     if (!best) return reply({ ...ctx, budget: [lo, hi] }, { messages: [t(lang, 'noSlots')] }, label)
     const next: Ctx = { ...ctx, budget: [lo, hi], projectId: best.id }
     if (ctx.leadId) await payload.update({ collection: 'leads', id: ctx.leadId, data: { budgetMinLakh: lo, budgetMaxLakh: hi, project: best.id, stage: 'qualified' }, overrideAccess: true })
-    const price = (await answerFact(best.id, 'price', lang)) ?? `${formatLakh(best.priceFromLakh)} - ${formatLakh(best.priceToLakh)}`
+    const price = await answerFact(best.id, 'price', lang)
+    if (!price) return handoffToPerson(next, 'Project-specific pricing is missing from the approved fact sheet', label)
     return reply(next, {
       messages: [t(lang, 'recommend', { project: best.name, locality: best.locality, price }) + ' ' + t(lang, 'priceNote'), t(lang, 'askVisit')],
       chips: nextChips(lang, projects.length > 1),
@@ -195,7 +196,7 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
   }
 
   if (input.action === 'other') {
-    const projects = (await payload.find({ collection: 'projects', depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
+    const projects = (await payload.find({ collection: 'projects', where: { approvedForPublic: { equals: true } }, depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
     const alt = projects.find((p) => p.id !== ctx.projectId)
     if (!alt) return reply(ctx, { messages: [t(lang, 'askVisit')], chips: nextChips(lang, false) }, label)
     const next = { ...ctx, projectId: alt.id }
@@ -338,7 +339,7 @@ export async function askQuestion(input: { ctx: Ctx; text: string }): Promise<Re
   const lang = ctx.lang
   const text = clean(input.text, 400)
   if (!text) return { ok: false, error: 'Empty', messages: [], ctx }
-  if (/\\b(human|person|salesperson|advisor|agent)\\b|किसी से बात|व्यक्ति से बात|કોઈ સાથે વાત|વ્યક્તિ સાથે વાત/i.test(text)) {
+  if (/\b(human|person|salesperson|advisor|agent)\b|किसी से बात|व्यक्ति से बात|કોઈ સાથે વાત|વ્યક્તિ સાથે વાત/i.test(text)) {
     return handoffToPerson(ctx, 'Buyer asked to speak to a person', text)
   }
   if (DISCOUNT_RE.test(text)) {
