@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
       try {
         await payload.create({
           collection: 'reminder-deliveries',
+          draft: true,
           overrideAccess: true,
           data: {
             deliveryKey: key,
