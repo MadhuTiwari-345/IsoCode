@@ -25,3 +25,26 @@ test('invalid capacities are unavailable', () => {
 test('cancelled and no-show visits release a slot', () => {
   assert.equal(remainingCapacity(1, [{ status: 'cancelled' }, { status: 'no_show' }]), 1)
 })
+
+
+test('seat claims choose a free seat and ignore released bookings', async () => {
+  const { nextSeatClaimKey } = await import('../src/lib/booking-capacity.ts')
+  assert.equal(nextSeatClaimKey('slot-a', 2, []), 'slot-a:0')
+  assert.equal(nextSeatClaimKey('slot-a', 2, [{ status: 'booked', claimKey: 'slot-a:0' }]), 'slot-a:1')
+  assert.equal(nextSeatClaimKey('slot-a', 2, [
+    { status: 'booked', claimKey: 'slot-a:0' },
+    { status: 'cancelled', claimKey: 'slot-a:1' },
+  ]), 'slot-a:1')
+})
+
+test('seat claims account for legacy active bookings without claim keys', async () => {
+  const { nextSeatClaimKey } = await import('../src/lib/booking-capacity.ts')
+  assert.equal(nextSeatClaimKey('slot-b', 2, [{ status: 'booked' }]), 'slot-b:1')
+  assert.equal(nextSeatClaimKey('slot-b', 1, [{ status: 'attended' }]), null)
+})
+
+test('seat claims refuse full or invalid capacity', async () => {
+  const { nextSeatClaimKey } = await import('../src/lib/booking-capacity.ts')
+  assert.equal(nextSeatClaimKey('slot-c', 1, [{ status: 'booked', claimKey: 'slot-c:0' }]), null)
+  assert.equal(nextSeatClaimKey('slot-c', 0, []), null)
+})
