@@ -35,9 +35,9 @@ export default async function Dashboard() {
     const sl = leads.filter((l) => l.source === s)
     const bookedVisits = bookings.filter((b) => leadById.get(b.lead as string)?.source === s)
     const legacyVisited = leads.filter((l) => l.source === s && l.stage === 'visited' && !bookingLeadIds.has(l.id))
-    const visits = [...bookedVisits, ...legacyVisited].length
+    const visits = bookedVisits.length + legacyVisited.length
     const spend = spendRes.docs.find((x) => x.source === s)?.spendInr ?? 0
-    return { s, leads: sl.length, visits: visits.length, spend, cpl: sl.length ? spend / sl.length : null, cpv: visits.length ? spend / visits.length : null, rate: sl.length ? visits.length / sl.length : 0 }
+    return { s, leads: sl.length, visits, spend, cpl: sl.length ? spend / sl.length : null, cpv: visits ? spend / visits : null, rate: sl.length ? visits / sl.length : 0 }
   })
   const maxRate = Math.max(...rows.map((r) => r.rate), 0.01)
   const totalSpend = rows.reduce((a, r) => a + r.spend, 0)
