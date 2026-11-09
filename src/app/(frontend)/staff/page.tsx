@@ -22,13 +22,20 @@ export default async function Dashboard() {
   const med = median(leads.filter((l) => l.firstResponseMinutes != null).map((l) => l.firstResponseMinutes as number))
   const old = leads.filter((l) => now - +new Date(l.enquiredAt) > 48 * 3600e3)
   const unreached = old.filter((l) => l.firstResponseMinutes == null || l.firstResponseMinutes > 48 * 60)
-  const visitLeads = new Set(bookings.map((b) => b.lead as string))
+  const bookingLeadIds = new Set(bookings.map((b) => b.lead as string))
+  // Legacy/sample leads may record a completed visit without a Booking document.
+  // Count those once, without double-counting leads already represented by bookings.
+  const visitedWithoutBooking = leads.filter((l) => l.stage === 'visited' && !bookingLeadIds.has(l.id))
+  const visitLeads = new Set([...bookingLeadIds, ...visitedWithoutBooking.map((l) => l.id)])
   const done = bookings.filter((b: Booking) => b.status === 'attended' || b.status === 'no_show')
-  const showUp = done.filter((b) => b.status === 'attended').length
+  const completedVisitCount = done.length + visitedWithoutBooking.length
+  const showUp = done.filter((b) => b.status === 'attended').length + visitedWithoutBooking.length
 
   const rows = Object.keys(SOURCE_LABEL).map((s) => {
     const sl = leads.filter((l) => l.source === s)
-    const visits = bookings.filter((b) => leadById.get(b.lead as string)?.source === s)
+    const bookedVisits = bookings.filter((b) => leadById.get(b.lead as string)?.source === s)
+    const legacyVisited = leads.filter((l) => l.source === s && l.stage === 'visited' && !bookingLeadIds.has(l.id))
+    const visits = [...bookedVisits, ...legacyVisited].length
     const spend = spendRes.docs.find((x) => x.source === s)?.spendInr ?? 0
     return { s, leads: sl.length, visits: visits.length, spend, cpl: sl.length ? spend / sl.length : null, cpv: visits.length ? spend / visits.length : null, rate: sl.length ? visits.length / sl.length : 0 }
   })
@@ -39,8 +46,8 @@ export default async function Dashboard() {
     ['Median first response', fmtMin(med), 'Target under 5 min'],
     ['Unreached after 48 hours', pct(unreached.length, old.length), `${unreached.length} of ${old.length} leads. Target under 5%`],
     ['Lead to visit rate', pct(visitLeads.size, leads.length), 'Target 8%'],
-    ['Show-up rate', pct(showUp, done.length), `${showUp} of ${done.length} completed visits`],
-    ['Cost per visit', bookings.length ? inr(totalSpend / bookings.length) : '—', `${inr(totalSpend)} across ${bookings.length} visits`],
+    ['Show-up rate', pct(showUp, completedVisitCount), `${showUp} of ${completedVisitCount} completed visits`],
+    ['Cost per visit', visitLeads.size ? inr(totalSpend / visitLeads.size) : '—', `${inr(totalSpend)} across ${visitLeads.size} recorded visits`],
   ]
   const flagged = leadsRes.docs.filter((l) => l.flagged)
   const waiting = leads.filter((l) => l.firstResponseMinutes == null).sort((a, b) => +new Date(a.enquiredAt) - +new Date(b.enquiredAt)).slice(0, 6)
@@ -63,7 +70,7 @@ export default async function Dashboard() {
       <div className="mt-5 overflow-x-auto rounded-2xl border border-line bg-card">
         <table className="w-full min-w-[640px] text-sm">
           <thead className="text-left text-xs text-mute"><tr className="border-b border-line">
-            {['Source', 'Leads', 'Visits booked', 'Lead to visit', 'Spend', 'Cost per lead', 'Cost per visit'].map((h) => <th key={h} className="px-5 py-3 font-normal">{h}</th>)}
+            {['Source', 'Leads', 'Visits recorded', 'Lead to visit', 'Spend', 'Cost per lead', 'Cost per visit'].map((h) => <th key={h} className="px-5 py-3 font-normal">{h}</th>)}
           </tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -80,7 +87,7 @@ export default async function Dashboard() {
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-xs text-mute">Spend figures are sample data. Edit them under Source spend in the admin.</p>
+      <p className="mt-3 text-xs text-mute">The brief supplies only total monthly spend, not a channel split. Enter verified spend by source under Source spend to calculate reliable source-level CPL and cost per visit.</p>
 
       <div className="mt-12 grid gap-5 lg:grid-cols-2">
         <section>
