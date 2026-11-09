@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isStaff } from './access'
-import { exceedsCapacity } from '../lib/booking-capacity'
+import { nextSeatClaimKey } from '../lib/booking-capacity'
 
 const HOUR = 3600_000
 
@@ -22,42 +22,20 @@ export const Bookings: CollectionConfig = {
         data.project = typeof slot.project === 'object' ? (slot.project as any).id : slot.project
         data.code = data.code || `SV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
         data.status = 'booked'
+
+        // This read chooses a candidate seat. The unique claimKey index below
+        // is what makes the reservation race-safe, not this read itself.
+        const active = await req.payload.find({
+          collection: 'bookings', req, overrideAccess: true, depth: 0,
+          where: { and: [{ slot: { equals: slot.id } }, { status: { in: ['booked', 'attended'] } }] },
+          limit: 1000, pagination: false,
+        })
+        const claimKey = nextSeatClaimKey(slot.id, slot.capacity, active.docs)
+        if (!claimKey) throw new Error('SLOT_FULL')
+        data.claimKey = claimKey
         data.reminderDayBefore = new Date(start - 24 * HOUR).toISOString()
         data.reminderTwoHours = new Date(start - 2 * HOUR).toISOString()
         return data
       },
     ],
-    // Double-booking guard: re-counts after insert and removes the booking if the slot is over capacity.
-    afterChange: [
-      async ({ doc, operation, req }) => {
-        if (operation !== 'create') return doc
-        // Re-read: the doc passed to hooks may be a partial `select` projection.
-        const full = await req.payload.findByID({ collection: 'bookings', id: doc.id, depth: 0, req, overrideAccess: true })
-        const slotId = full.slot as string
-        const slot = await req.payload.findByID({ collection: 'visit-slots', id: slotId, depth: 0, req, overrideAccess: true })
-        const activeBookings = await req.payload.find({
-          collection: 'bookings', req, overrideAccess: true, depth: 0,
-          where: { and: [{ slot: { equals: slotId } }, { status: { in: ['booked', 'attended'] } }] },
-          limit: 1000, pagination: false,
-        })
-        if (exceedsCapacity(slot.capacity, activeBookings.docs)) {
-          // Compensate explicitly: do not rely on transaction support. If two
-          // requests race, both may back out, but capacity is never exceeded.
-          await req.payload.delete({ collection: 'bookings', id: doc.id, req, overrideAccess: true })
-          throw new Error('SLOT_FULL')
-        }
-        return doc
-      },
-    ],
-  },
-  fields: [
-    { name: 'code', type: 'text', unique: true, index: true, admin: { readOnly: true } },
-    { name: 'lead', type: 'relationship', relationTo: 'leads', required: true, index: true },
-    { name: 'slot', type: 'relationship', relationTo: 'visit-slots', required: true, index: true },
-    { name: 'project', type: 'relationship', relationTo: 'projects', index: true },
-    { name: 'visitors', type: 'number', defaultValue: 2, min: 1, max: 8 },
-    { name: 'status', type: 'select', defaultValue: 'booked', index: true, options: [{ label: 'Booked', value: 'booked' }, { label: 'Attended', value: 'attended' }, { label: 'No-show', value: 'no_show' }, { label: 'Cancelled', value: 'cancelled' }] },
-    { name: 'reminderDayBefore', type: 'date' },
-    { name: 'reminderTwoHours', type: 'date' },
-  ],
-}
+
