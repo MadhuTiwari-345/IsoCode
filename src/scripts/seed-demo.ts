@@ -36,7 +36,7 @@ const sampleLeads = [
   {
     leadCode: 'LD-58210',
     name: 'Hardik Patel',
-    source: 'portal_99acres',
+    source: 'property_portal',
     project: project1.id,
     bhk: '3',
     stage: 'visit_booked',
