@@ -5,6 +5,7 @@ const links = [
   ['/projects', 'Residences'],
   ['/#visit', 'The visit'],
   ['/#faq', 'FAQs'],
+  ['/sales-team', 'Sales team'],
 ]
 
 export default function SiteHeader() {
