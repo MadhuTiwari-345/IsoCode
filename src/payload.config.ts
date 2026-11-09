@@ -17,6 +17,7 @@ import { Leads } from './collections/Leads'
 import { ChatMessages } from './collections/ChatMessages'
 import { Bookings } from './collections/Bookings'
 import { SourceSpend } from './collections/SourceSpend'
+import { ReminderDeliveries } from './collections/ReminderDeliveries'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -51,7 +52,7 @@ export default buildConfig({
     fallbackLanguage: 'en',
     supportedLanguages: { en: adminLanguage },
   },
-  collections: [Admins, Media, Folders, Tags, Users, Projects, FactSheet, SalesExecutives, VisitSlots, Leads, ChatMessages, Bookings, SourceSpend],
+  collections: [Admins, Media, Folders, Tags, Users, Projects, FactSheet, SalesExecutives, VisitSlots, Leads, ChatMessages, Bookings, SourceSpend, ReminderDeliveries],
   db: mongooseAdapter({
     url: process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/homiq',
     // The deployed Atlas-compatible Mongo endpoint does not support Payload's
