@@ -1,5 +1,6 @@
 import { getPayload } from 'payload'
 import config from '../payload.config'
+import type { Lead } from '../payload-types'
 
 const payload = await getPayload({ config })
 const projects = await payload.find({
@@ -40,7 +41,7 @@ const sampleLeads = [
     bhk: '2',
     stage: 'visited',
   },
-]
+] as const
 
 const saved = new Map<string, string>()
 for (const sample of sampleLeads) {
@@ -51,7 +52,7 @@ for (const sample of sampleLeads) {
     depth: 0,
     overrideAccess: true,
   })
-  const data = {
+  const data: Partial<Lead> = {
     ...sample,
     // Deliberately non-contactable placeholders. Replace only with consented
     // test numbers before exercising any messaging integration.
@@ -62,10 +63,20 @@ for (const sample of sampleLeads) {
     consentDpdp: false,
     whatsappOptIn: false,
   }
-  const lead = existing.docs[0]
-    ? await payload.update({ collection: 'leads', id: existing.docs[0].id, data, overrideAccess: true })
-    : await payload.create({ collection: 'leads', data, overrideAccess: true })
-  saved.set(sample.leadCode, lead.id)
+  if (existing.docs[0]) {
+    await payload.update({ collection: 'leads', id: existing.docs[0].id, data, overrideAccess: true })
+  } else {
+    await payload.create({ collection: 'leads', data, overrideAccess: true })
+  }
+  const savedLead = await payload.find({
+    collection: 'leads',
+    where: { leadCode: { equals: sample.leadCode } },
+    limit: 1,
+    depth: 0,
+    overrideAccess: true,
+  })
+  if (!savedLead.docs[0]) throw new Error(`Could not save demo lead ${sample.leadCode}`)
+  saved.set(sample.leadCode, savedLead.docs[0].id)
 }
 
 const hardikId = saved.get('LD-58210')!
