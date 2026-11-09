@@ -11,7 +11,7 @@ const projects = await payload.find({
 })
 
 if (projects.docs.length < 2) {
-  throw new Error('Seed requires two existing project records. Add the client-verified projects in Admin first; the seed will not invent project facts.')
+  throw new Error('Seed requires the two Project 01 / Project 02 records. Create those demo catalogue records in Admin before seeding.')
 }
 
 const [project1, project2] = projects.docs
@@ -19,7 +19,19 @@ const [project1, project2] = projects.docs
 // Only facts explicitly present in the interview brief are seeded. These project
 // records and future visit slots are explicitly demo-only.
 for (const project of [project1, project2]) {
-  await payload.update({ collection: 'projects', id: project.id, data: { demoOnly: true } as any, overrideAccess: true })
+  await payload.update({
+    collection: 'projects', id: project.id,
+    data: {
+      demoOnly: true,
+      approvedForPublic: true,
+      address: 'Illustrative demo location, Ahmedabad (not a real project address)',
+      latitude: project.latitude || 23.0225,
+      longitude: project.longitude || 72.5714,
+      reraNumber: 'DEMO ONLY · NOT A RERA REGISTRATION',
+      possession: 'Demo data · confirm with advisor',
+    } as any,
+    overrideAccess: true,
+  })
   const facts = [
     { topic: 'price', answerEn: 'The client brief gives a combined portfolio price range of ₹65 lakh to ₹1.2 crore across both projects. It does not provide a project-specific price or final offer. A sales advisor must confirm the current price. HOMIQ never quotes final prices or discounts.', answerHi: 'क्लाइंट के ब्रीफ के अनुसार, दोनों परियोजनाओं की संयुक्त मूल्य सीमा ₹65 लाख से ₹1.2 करोड़ है। किसी एक परियोजना की अलग कीमत या अंतिम ऑफ़र नहीं दिया गया है। वर्तमान कीमत की पुष्टि बिक्री सलाहकार करेंगे। HOMIQ अंतिम कीमत या छूट नहीं बताता।', answerGu: 'ક્લાયન્ટના બ્રીફ મુજબ, બંને પ્રોજેક્ટની સંયુક્ત કિંમતની રેન્જ ₹65 લાખથી ₹1.2 કરોડ છે. કોઈ એક પ્રોજેક્ટની અલગ કિંમત અથવા અંતિમ ઓફર આપવામાં આવી નથી. હાલની કિંમતની પુષ્ટિ સેલ્સ સલાહકાર કરશે. HOMIQ અંતિમ કિંમત અથવા ડિસ્કાઉન્ટ જણાવતું નથી.' },
     { topic: 'configs', answerEn: 'The client brief states that the developer has two live residential projects with 2 BHK and 3 BHK homes, and 420 apartments in total. It does not specify project-wise inventory or availability. A sales advisor must confirm those details.', answerHi: 'क्लाइंट के ब्रीफ के अनुसार, डेवलपर के दो चालू आवासीय प्रोजेक्ट हैं जिनमें 2 BHK और 3 BHK घर हैं और कुल 420 अपार्टमेंट हैं। प्रत्येक प्रोजेक्ट का अलग इन्वेंटरी या उपलब्धता विवरण नहीं दिया गया है। बिक्री सलाहकार इसकी पुष्टि करेंगे।', answerGu: 'ક્લાયન્ટના બ્રીફ મુજબ, ડેવલપરના બે ચાલુ રહેણાંક પ્રોજેક્ટ છે જેમાં 2 BHK અને 3 BHK ઘરો છે અને કુલ 420 એપાર્ટમેન્ટ છે. દરેક પ્રોજેક્ટની અલગ ઇન્વેન્ટરી અથવા ઉપલબ્ધતાની માહિતી આપવામાં આવી નથી. સેલ્સ સલાહકાર તેની પુષ્ટિ કરશે.' },
@@ -126,7 +138,7 @@ if (!existingBooking.docs.length) {
   await payload.update({ collection: 'visit-slots', id: slot.id, data: { isOpen: false }, overrideAccess: true })
 }
 
-// Future availability is simulated for prototype testing, never a real client calendar.
+// Future availability is simulated reviewer data, not Company A's operating calendar.
 const nowIST = new Date(Date.now() + 330 * 60_000)
 const todayIST = Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate())
 for (const project of [project1, project2]) {
@@ -144,5 +156,5 @@ for (const project of [project1, project2]) {
 payload.logger.info('HOMIQ demo seed complete.')
 payload.logger.info(`Project 1 mapped to existing project: ${project1.name} (${project1.id})`)
 payload.logger.info(`Project 2 mapped to existing project: ${project2.name} (${project2.id})`)
-payload.logger.info('Seeded LD-58210, LD-58211 and LD-58224. Placeholder phone values are non-contactable; consent and WhatsApp opt-in are false.')
+payload.logger.info('Seeded LD-58210, LD-58211 and LD-58224 plus clearly labelled reviewer-only demo availability. Placeholder phones are non-contactable; consent and WhatsApp opt-in are false.')
 process.exit(0)
