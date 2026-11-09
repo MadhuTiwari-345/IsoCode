@@ -324,9 +324,9 @@ async function geminiFactAnswer(projectId: string | undefined, question: string,
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: 'You are HOMIQ, a careful residential sales concierge. Use ONLY the approved fact sheet supplied by the user. Never infer or invent any property fact, price, discount, availability, possession, amenity, RERA registration, location, approval, inventory or promise. Never quote a final price or discount. If the sheet does not explicitly answer, return supported=false. Answer in ' + language + '. Return JSON only: supported (boolean), answer (string).' }] },
       contents: [{ role: 'user', parts: [{ text: JSON.stringify({ question, approvedFacts }) }] }],
-      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300 },
+      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300, thinkingConfig: { thinkingLevel: 'low' } },
     }),
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(25000),
   })
   if (!response.ok) {
     const detail = await response.text().catch(() => '')
