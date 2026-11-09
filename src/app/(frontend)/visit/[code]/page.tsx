@@ -45,7 +45,7 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
         <section className="mt-10 border-t border-line pt-8">
           <h2 className="text-xs uppercase tracking-[0.2em] text-mute">Your sales advisor</h2>
           <p className="mt-3 font-serif text-2xl">{exec.name}</p>
-          {exec.phone?.trim() && <a href={`tel:${exec.phone.replace(/\s/g, '')}`} className="mt-1 inline-block text-sm text-moss underline underline-offset-4">{exec.phone}</a>}
+          {exec.phone?.trim() && !/^0+$/.test(exec.phone.replace(/\D/g, '')) && <a href={`tel:${exec.phone.replace(/\s/g, '')}`} className="mt-1 inline-block text-sm text-moss underline underline-offset-4">{exec.phone}</a>}
           <p className="mt-2 text-sm text-mute">Your conversation so far has been shared, so you will not need to repeat yourself.</p>
         </section>
       )}
