@@ -22,7 +22,7 @@ export function createAppAuth(collection: 'users') {
         // Only the app token is passed, so an admin cookie can never be mistaken for an app user.
         // Payload's own JWT strategy, called directly so it works no matter which strategies the
         // CMS (admin) collection registers on the running instance.
-        const { user } = await JWTAuthentication({ headers: new Headers({ Cookie: `payload-token=${token}` }), payload })
+        const { user } = await JWTAuthentication({ headers: new Headers({ Authorization: `JWT ${token}`, DisableAutologin: 'true' }), payload })
         if (!user || user.collection !== collection) return null
         return user as unknown as User
       } catch {
