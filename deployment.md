@@ -76,48 +76,31 @@ pnpm seed:demo
 
 Run this only against a disposable demo database or after reviewing existing records. It does not import the separate 18-row PDF dataset. Placeholder contact values are not contactable and have no consent. The seeded slots are persisted and bookable within the demo environment, but they are not Company A's real calendar or a confirmed real-world appointment. The map points are illustrative and must not be used for travel directions.
 
-## 5. Sales staff reviewer accounts
+## 5. Reviewer accounts
 
-Public sign-up creates buyer accounts only. The reviewer provisioning script creates only the two internal staff roles:
+No default reviewer credentials are stored in the repository. Create one account per role using private, untracked environment variables in the shell connected to the database reviewers will use:
 
-- Sales executive: HOMIQ_REVIEWER_EXECUTIVE_EMAIL, HOMIQ_REVIEWER_EXECUTIVE_PASSWORD, and HOMIQ_REVIEWER_EXECUTIVE_PHONE.
-- Sales head: HOMIQ_REVIEWER_HEAD_EMAIL and HOMIQ_REVIEWER_HEAD_PASSWORD.
+| Variable | Role |
+| --- | --- |
+| `HOMIQ_REVIEWER_BUYER_EMAIL` / `HOMIQ_REVIEWER_BUYER_PASSWORD` | Buyer |
+| `HOMIQ_REVIEWER_EXECUTIVE_EMAIL` / `HOMIQ_REVIEWER_EXECUTIVE_PASSWORD` | Sales executive |
+| `HOMIQ_REVIEWER_HEAD_EMAIL` / `HOMIQ_REVIEWER_HEAD_PASSWORD` | Sales head |
 
-Both passwords must be at least 14 characters. Optional display names are HOMIQ_REVIEWER_EXECUTIVE_NAME and HOMIQ_REVIEWER_HEAD_NAME. The executive phone is required because the sales roster record requires it. Use a demo-only phone value that is not a real contact number.
+Passwords must be at least 14 characters. Optional display-name variables are `HOMIQ_REVIEWER_BUYER_NAME`, `HOMIQ_REVIEWER_EXECUTIVE_NAME` and `HOMIQ_REVIEWER_HEAD_NAME`.
 
-The script creates or updates the user account by email. If that email already exists, its password, name and role are reset. It also creates or updates the executive roster record, links it to the executive login, enables English/Hindi/Gujarati, and associates existing project records. The sales-head account is not linked to an individual executive record.
+Run:
 
-On Windows PowerShell, from the repository root, pull the production environment and make it available to the Payload CLI:
-
-```powershell
-pnpm dlx vercel env pull .env.production --environment=production
-Copy-Item .env.production .env
-```
-
-Then set dedicated reviewer credentials in the current PowerShell session. Replace the example email addresses with dedicated addresses you control. Use unique passwords generated in a password manager; do not commit them or paste them into chat.
-
-```powershell
-$env:HOMIQ_REVIEWER_EXECUTIVE_EMAIL = "sales.executive.demo@example.com"
-$env:HOMIQ_REVIEWER_EXECUTIVE_NAME = "HOMIQ Demo Sales Executive"
-$env:HOMIQ_REVIEWER_EXECUTIVE_PHONE = "0000000000"
-$env:HOMIQ_REVIEWER_EXECUTIVE_PASSWORD = Read-Host "Executive password (14+ characters)"
-
-$env:HOMIQ_REVIEWER_HEAD_EMAIL = "sales.head.demo@example.com"
-$env:HOMIQ_REVIEWER_HEAD_NAME = "HOMIQ Demo Sales Head"
-$env:HOMIQ_REVIEWER_HEAD_PASSWORD = Read-Host "Sales head password (14+ characters)"
-
+```bash
 pnpm provision:reviewers
-Remove-Item Env:HOMIQ_REVIEWER_EXECUTIVE_PASSWORD
-Remove-Item Env:HOMIQ_REVIEWER_HEAD_PASSWORD
 ```
 
-After provisioning, remove the local environment copy when finished:
+The script creates or resets accounts by email. **It resets the password and role for an existing matching email.** Use dedicated reviewer addresses, not an existing personal account. Share passwords only through a private channel.
 
-```powershell
-Remove-Item .env
-```
+Login routes:
 
-Both roles sign in at /login?next=/staff. The workspace redirects authenticated staff to /staff. Never put reviewer passwords in source control, deployment logs, README files or public issue comments.
+- Buyer: `/login`
+- Executive: `/login?next=/staff`
+- Sales head: `/login?next=/staff`
 
 ## 6. CI and production deployment
 
