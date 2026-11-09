@@ -112,7 +112,7 @@ pnpm generate:types
 pnpm exec tsc --noEmit
 ```
 
-Vercel is connected to `MadhuTiwari-345/IsoCode` and deploys `main). Check the [Vercel deployment history](https://vercel.com/mt1499961-2971s-projects/isocode-homiq) after each change.
+Vercel is connected to `MadhuTiwari-345/IsoCode` and deploys `main`. Check the [Vercel deployment history](https://vercel.com/mt1499961-2971s-projects/isocode-homiq) after each change.
 
 ## 7. Reminder worker
 
