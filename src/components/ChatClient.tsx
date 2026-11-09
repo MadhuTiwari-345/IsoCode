@@ -120,7 +120,7 @@ export default function ChatClient() {
         )}
 
         {code && (
-          <Link href={`/visit/${code}`} className="rise inline-block rounded-xl btn-grad px-5 py-3 text-sm font-medium text-white hover:brightness-110">View confirmation and site pin</Link>
+          <Link href={`/visit/${code}`} className="rise inline-block rounded-xl btn-grad px-5 py-3 text-sm font-medium text-white hover:brightness-110">View booking details</Link>
         )}
         {pending && <p className="text-sm text-mute" aria-live="polite">…</p>}
         {error && step !== 'register' && <p role="alert" className="text-sm text-clay">{error}</p>}
