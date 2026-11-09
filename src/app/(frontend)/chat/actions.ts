@@ -338,9 +338,24 @@ export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: strin
   if (!lead || !slot || slot.project !== ctx.projectId) return { ok: false, error: 'This time is not available.', messages: [], ctx }
 
   let booking
-  try {
-    booking = await payload.create({ collection: 'bookings', data: { lead: lead.id, slot: slot.id, visitors: 2 }, overrideAccess: true })
-  } catch {
+  // Retry unique-seat collisions. Another buyer may have claimed the same
+  // candidate between the availability read and the insert. Each retry reruns
+  // the booking hook, which chooses the next free seat; Mongo's unique index
+  // decides which concurrent request wins.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      booking = await payload.create({ collection: 'bookings', data: { lead: lead.id, slot: slot.id, visitors: 2 }, overrideAccess: true })
+      break
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      const retryable = /duplicate key|E11000|SLOT_FULL|unique/i.test(message)
+      if (!retryable || attempt === 2) {
+        const slots = await openSlots(ctx.projectId, lang)
+        return reply(ctx, { messages: [t(lang, 'slotTaken')], slots }, clean(input.label, 120))
+      }
+    }
+  }
+  if (!booking) {
     const slots = await openSlots(ctx.projectId, lang)
     return reply(ctx, { messages: [t(lang, 'slotTaken')], slots }, clean(input.label, 120))
   }
