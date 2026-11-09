@@ -1,164 +1,573 @@
-# HOMIQ — Technical Design Document
+# HOMIQ | Technical Design Document
 
-**GitHub repository:** https://github.com/MadhuTiwari-345/IsoCode  
+**Repository:** https://github.com/MadhuTiwari-345/IsoCode  
 **Live application:** https://isocode-homiq.vercel.app  
-**Candidate:** Software Engineering internship  
+**Document status:** Engineering design and implementation record  
 **Prepared:** 9 November 2026
 
-## 1. Executive summary
+> **Evidence convention:** “Implemented” means the behavior is present in the repository. “Verified” means a recorded automated or operational check has run. “Pending” means it still requires an integration, staging or client-side validation. The distinction matters: a successful build is not proof of a complete user journey.
 
-HOMIQ is a mobile-first lead response and site-visit workflow for Company A, an Ahmedabad residential developer. The core product slice connects the buyer's first enquiry to a qualified lead, an approved-fact answer, a site-visit reservation and a human sales handoff.
+---
 
-The brief's operational baseline is 3,000 leads per month, ₹30 lakh monthly spend, ₹1,000 per lead, 14-hour median first response, 35% unreached within 48 hours and 6% lead-to-site-visit conversion. These are client-supplied planning assumptions, not measured results from this prototype.
+## 1. Product summary
 
-## 2. Scope and outcome
+HOMIQ connects a residential buyer's first enquiry to qualification, approved project information, a site-visit request and a human sales handoff. It provides a buyer-facing web experience and a protected sales workspace.
 
-The core slice implements:
-- One source-tagged lead inbox and duplicate detection.
-- Buyer chat in English, Hindi and Gujarati.
-- Guided capture of configuration and budget.
-- Approved fact-sheet lookup with constrained Gemini fallback and human escalation.
-- Future slot discovery and a database-enforced seat claim for booking.
-- Persisted chat transcript, summary and executive assignment.
-- Sales workspace, visit outcome management and source dashboard.
-- Consent-aware mock reminder processing.
+The client brief describes Company A as an Ahmedabad developer with two projects, 420 apartments, 2/3 BHK configurations and a combined indicative portfolio price range of ₹65 lakh–₹1.2 crore. The brief also supplies planning assumptions of 3,000 leads/month, ₹30 lakh monthly marketing spend, ₹1,000 cost per lead, a 14-hour median first response, 35% unreached within 48 hours and 6% lead-to-visit conversion. These are **brief-supplied assumptions**, not measured HOMIQ production results.
 
-The target outcomes in the brief are median first response under five minutes, fewer than 5% unreached within 48 hours and 8% lead-to-visit conversion within three months. The prototype does not claim those outcomes have been achieved.
+### Product objectives
 
-## 3. Architecture
+- Capture enquiries with source attribution and identify likely duplicates.
+- Respond in English, Hindi or Gujarati using approved facts.
+- Collect buyer configuration and budget preferences.
+- Offer only future, open visit slots and protect seat claims against duplicate allocation.
+- Preserve the conversation and assign serious or unsupported enquiries to sales.
+- Give sales users visibility into response, visits, attendance and source performance.
 
-| Layer | Implementation | Reason |
+### Success measures from the brief
+
+| Measure | Starting point in brief | Target in brief |
+|---|---:|---:|
+| Median first response | 14 hours | Under 5 minutes |
+| Leads unreached within 48 hours | 35% | Under 5% |
+| Lead-to-site-visit conversion | 6% | 8% within 3 months |
+
+Targets are acceptance goals for a future operating rollout. The prototype does not claim to have achieved them.
+
+---
+
+## 2. Scope and boundaries
+
+### Included in the core slice
+
+1. Buyer registration, consent and language selection.
+2. Source-tagged lead creation and duplicate indication.
+3. Guided qualification for 2/3 BHK and budget.
+4. Fact-sheet answers with constrained Gemini fallback and escalation.
+5. Future visit-slot discovery and booking with a unique seat-claim key.
+6. Transcript persistence, handoff summary and executive assignment.
+7. Sales lead inbox, lead detail, visit outcome management and source dashboard.
+8. Admin-managed project facts, visit slots, sales roster and source spend.
+9. Protected reminder processing with mock delivery audit records.
+
+### Explicitly out of scope
+
+- Full CRM replacement.
+- Payments, apartment allotment and legal documents.
+- Outbound voice calling.
+- Live portal integrations and live WhatsApp Business messaging.
+- A real client calendar or external messaging provider.
+
+The product is a focused workflow, not a claim that all 60 staff operations or every external lead source have been integrated.
+
+---
+
+## 3. System architecture
+
+### 3.1 Architecture at a glance
+
+HOMIQ uses a modular monolith: one Next.js application contains the buyer UI, staff UI, server actions, API routes and Payload CMS data layer. MongoDB is the persistent store. This keeps deployment and operational overhead low for a small product team while retaining clear domain boundaries.
+
+```mermaid
+flowchart TB
+  subgraph Clients["Client surfaces"]
+    B["Buyer · mobile web"]
+    S["Sales executive · web"]
+    H["Sales head / admin · web"]
+  end
+
+  subgraph App["Vercel · Next.js application"]
+    UI["React pages and components"]
+    AUTH["Application auth and role checks"]
+    SA["Server actions"]
+    API["Protected route handlers"]
+    CMS["Payload CMS · collections and admin"]
+    AI["Fact-answer service"]
+    BOOK["Booking capacity service"]
+    REM["Reminder worker endpoint"]
+  end
+
+  subgraph External["External services"]
+    GEM["Google Gemini API"]
+    GH["GitHub Actions · 5-minute schedule"]
+  end
+
+  subgraph Data["MongoDB"]
+    DB[("HOMIQ database")]
+    LEADS["Leads and chat messages"]
+    FACTS["Projects and fact sheet"]
+    VISITS["Visit slots and bookings"]
+    OPS["Executives, spend and reminder audit"]
+  end
+
+  B --> UI
+  S --> UI
+  H --> UI
+  UI --> AUTH
+  UI --> SA
+  SA --> AI
+  SA --> BOOK
+  SA --> CMS
+  AI --> GEM
+  CMS --> DB
+  BOOK --> DB
+  DB --- LEADS
+  DB --- FACTS
+  DB --- VISITS
+  DB --- OPS
+  GH --> REM
+  REM --> CMS
+```
+
+### 3.2 Runtime responsibilities
+
+| Component | Responsibility | Code location |
 |---|---|---|
-| Frontend | Next.js 16, React 19, Tailwind CSS 4 | One responsive application for buyer and staff screens |
-| Application | TypeScript server actions and route handlers | Keep validation and privileged operations server-side |
-| Authentication | Payload auth collection plus application session cookie | Buyer, executive and sales-head roles |
-| CMS/data layer | Payload CMS 4 | Collections, admin editor and access rules |
-| Database | MongoDB via Payload Mongoose adapter | Persistent leads, facts, slots, bookings and audit records |
-| AI | Server-side Gemini API | Bounded fact-sheet answer fallback |
-| Hosting | Vercel | Next.js production deployment |
-| Scheduled work | GitHub Actions | Five-minute polling of the protected reminder endpoint |
+| Buyer presentation | Discovery, chat, consent, qualification and visit confirmation | `src/app/(frontend)`, `src/components` |
+| Staff presentation | Overview, lead inbox, lead detail and visit outcomes | `src/app/(frontend)/staff` |
+| Application authentication | Buyer/staff session and role helpers | `src/lib/app-auth.ts`, `src/collections/Users.ts` |
+| Conversation orchestration | Guided chat, fact lookup, Gemini fallback, logging and handoff | `src/app/(frontend)/chat/actions.ts` |
+| CMS and access control | Collection schemas, admin interface and collection access | `src/payload.config.ts`, `src/collections` |
+| Booking domain | Slot validation, seat allocation and booking lifecycle | `src/collections/Bookings.ts`, `src/lib/booking-capacity.ts` |
+| Reminder processing | Authentication, due-job lookup, consent gate and idempotency record | `src/app/api/cron/reminders/route.ts` |
+| Persistence | Payload Mongoose adapter over MongoDB | `src/payload.config.ts` |
+| Hosting and scheduler | Vercel deployment and GitHub Actions schedule | Vercel project, `.github/workflows/homiq-reminders.yml` |
 
-A single Next.js/Payload application keeps the solo-built scope small and avoids a separate backend service. MongoDB's unique index on booking seat claims provides a final concurrency guard beyond the availability check in the UI.
+### 3.3 Why this architecture
 
-## 4. Data model
+- **One deployable unit:** avoids coordinating a separate API service and frontend for a deliberately narrow scope.
+- **Server-side business rules:** client UI does not decide whether a slot is bookable or whether an answer is supported.
+- **Payload collections:** give structured data, relationships, admin editing and access policies without building a separate CMS.
+- **MongoDB:** aligns with Payload's Mongo adapter and stores conversation, lead and booking records together.
+- **External scheduler:** the reminder endpoint can be called independently of a long-running web process. GitHub Actions currently polls it every five minutes.
+- **Replaceable integrations:** Gemini and mock reminder delivery are behind server-side boundaries, so providers can be changed without rewriting the buyer journey.
 
-| Collection | Main data | Relationships |
+### 3.4 Trust boundaries
+
+```mermaid
+flowchart LR
+  subgraph Untrusted["Untrusted input"]
+    FORM["Buyer form and chat"]
+    WEBHOOK["Future portal / messaging payloads"]
+  end
+  subgraph Trusted["Server-controlled boundary"]
+    VALIDATE["Input validation and normalization"]
+    SESSION["Session and role authorization"]
+    RULES["Domain rules: consent, facts, capacity"]
+    PERSIST["Payload data access"]
+  end
+  subgraph Secrets["Private configuration"]
+    ENV["Environment variables"]
+    MODEL["Gemini API"]
+    DB["MongoDB"]
+  end
+  FORM --> VALIDATE
+  WEBHOOK --> VALIDATE
+  VALIDATE --> SESSION
+  SESSION --> RULES
+  RULES --> PERSIST
+  ENV --> MODEL
+  ENV --> DB
+  PERSIST --> DB
+```
+
+All secrets stay server-side. Buyer input is untrusted, normalized and validated before domain actions. Public signup must not be able to grant staff roles. Administrative operations require staff authorization and role checks.
+
+---
+
+## 4. Data architecture
+
+### 4.1 Collection model
+
+```mermaid
+erDiagram
+  USERS ||--o| LEADS : creates
+  PROJECTS ||--o{ LEADS : interests
+  PROJECTS ||--o{ FACT_SHEET : documents
+  PROJECTS ||--o{ SALES_EXECUTIVES : covered_by
+  PROJECTS ||--o{ VISIT_SLOTS : offers
+  SALES_EXECUTIVES ||--o{ LEADS : owns
+  LEADS ||--o{ CHAT_MESSAGES : contains
+  LEADS ||--o{ BOOKINGS : requests
+  VISIT_SLOTS ||--o{ BOOKINGS : reserves
+  BOOKINGS ||--o{ REMINDER_DELIVERIES : schedules
+  LEADS ||--o{ REMINDER_DELIVERIES : receives_audit
+  SOURCE_SPEND }o--|| PROJECTS : optional_scope
+
+  USERS {
+    id id PK
+    email string
+    role string
+  }
+  PROJECTS {
+    id id PK
+    name string
+    reraNumber string
+    approvedForPublic boolean
+    demoOnly boolean
+  }
+  FACT_SHEET {
+    id id PK
+    project id FK
+    topic string
+    answerEn string
+    answerHi string
+    answerGu string
+  }
+  LEADS {
+    id id PK
+    leadCode string UK
+    source string
+    phoneNormalized string
+    consentDpdp boolean
+    doNotContact boolean
+    assignedTo id FK
+  }
+  CHAT_MESSAGES {
+    id id PK
+    lead id FK
+    role string
+    text string
+  }
+  VISIT_SLOTS {
+    id id PK
+    project id FK
+    startsAt datetime
+    capacity int
+    isOpen boolean
+    demoOnly boolean
+  }
+  BOOKINGS {
+    id id PK
+    lead id FK
+    slot id FK
+    claimKey string UK
+    status string
+  }
+  REMINDER_DELIVERIES {
+    id id PK
+    deliveryKey string UK
+    booking id FK
+    status string
+    channel string
+  }
+```
+
+The diagram shows logical relationships; Payload relationship fields may be stored as IDs or populated relationship objects at runtime.
+
+### 4.2 Collection responsibilities
+
+| Collection | Key fields and purpose |
+|---|---|
+| `users` / `admins` | Authenticated buyer and staff identities; admin access is separate. |
+| `projects` | Project label, locality, address, map coordinates, RERA number, portfolio facts, public approval and demo flags. |
+| `fact-sheet` | Sales-approved project facts with English, Hindi and Gujarati answer fields. |
+| `leads` | Contact, source, language, preferences, consent, opt-out, duplicate link, stage, response time, assignee and handoff summary. |
+| `chat-messages` | Persisted buyer and assistant transcript turns. |
+| `sales-executives` | Active state, language coverage, project coverage and assignment details. |
+| `visit-slots` | Project, start time, duration, capacity, open state and demo-only marker. |
+| `bookings` | Lead/slot relationship, status, unique seat claim and reminder timestamps. |
+| `reminder-deliveries` | Idempotency key, reminder kind, mock channel, outcome and audit text. |
+| `source-spend` | Source-level spend inputs used for cost reporting. |
+
+### 4.3 Indexing and data integrity
+
+- Lead code, booking code, booking `claimKey` and reminder `deliveryKey` are declared unique in Payload field definitions.
+- Lead phone normalization and source/stage/ownership fields are indexed for common lookup and filtering.
+- Booking seat claims use a deterministic slot-plus-seat key. The booking hook reads current active bookings, chooses a free seat key, then relies on the unique index as the final insert-time race guard.
+- Reminder delivery keys use booking ID plus reminder kind to make repeated worker invocations idempotent.
+- Duplicate lead detection is a normalized phone/email lookup before insert. **It is not a database-level uniqueness guarantee**, so two simultaneous lead submissions can still race and require a future unique-key or transactional design if strict deduplication is required.
+
+**Concurrency caveat:** the schema declares `claimKey` unique, but the live MongoDB index's deployed options and a simultaneous booking race have not yet been verified against a disposable staging database. Do not describe no-double-booking as integration-tested until that test passes.
+
+---
+
+## 5. Core workflows
+
+### 5.1 Buyer registration and lead capture
+
+```mermaid
+sequenceDiagram
+  actor Buyer
+  participant UI as Buyer web app
+  participant Action as Server action
+  participant Auth as App auth
+  participant DB as Payload / MongoDB
+  Buyer->>UI: Select language and enter contact details
+  UI->>Action: Submit registration and consent
+  Action->>Action: Normalize and validate fields
+  Action->>DB: Find likely duplicate by normalized phone/email
+  Action->>DB: Create lead with source and consent flags
+  DB-->>Action: Lead record and ID
+  Action-->>UI: Continue guided qualification
+  Buyer->>UI: Select BHK and budget
+  UI->>Action: Save qualification
+  Action->>DB: Update lead preferences
+  Action-->>UI: Continue conversation
+```
+
+Consent to process an enquiry and WhatsApp opt-in are separate fields. No WhatsApp message should be sent merely because DPDP consent is true. The source value is captured from the supported source set; external portal ingestion is not currently connected.
+
+### 5.2 AI answer and safe fallback
+
+```mermaid
+flowchart TD
+  Q["Buyer asks a question"] --> HUMAN{"Explicitly asks for a person?"}
+  HUMAN -->|Yes| HANDOFF["Persist transcript, flag lead, assign executive"]
+  HUMAN -->|No| TOPIC["Detect supported topic"]
+  TOPIC --> FACT{"Approved fact exists for project?"}
+  FACT -->|Yes| DETERMINISTIC["Return approved localized fact"]
+  FACT -->|No| GEMINI["Send approved project facts and question to Gemini"]
+  GEMINI --> VALID{"Structured answer supported and valid?"}
+  VALID -->|Yes| ANSWER["Return constrained answer"]
+  VALID -->|No / timeout / malformed| SAFE["Say a person will confirm"]
+  SAFE --> HANDOFF
+```
+
+**Implemented behavior**
+
+1. Deterministic topic detection and fact-sheet lookup take priority.
+2. If no deterministic answer exists, the server may call Gemini with the selected project's approved fact-sheet entries and the buyer's question.
+3. Gemini is instructed to return a structured supported/unsupported result and must not add unsupported claims.
+4. Unsupported, malformed, failed or uncertain responses fall back to a human-confirmation message and handoff.
+5. The transcript is persisted before handoff summary and assignment are completed.
+6. The buyer may request a human at any time.
+
+**Important implementation distinction:** this is a guided conversational workflow with a constrained Gemini answer fallback. The booking action is a separate validated server action, not an LLM function-calling tool. The product should be presented as an AI-assisted workflow with a booking capability, not as an autonomous agent that independently invokes tools.
+
+**Hard prohibitions**
+
+- Never invent amenities, possession dates, location, approvals, RERA registration, inventory or availability.
+- Never quote a final price or discount.
+- The combined portfolio price range is not a project-specific offer.
+- If the approved fact sheet lacks an answer, a human must confirm it.
+
+### 5.3 Booking and capacity protection
+
+```mermaid
+sequenceDiagram
+  actor Buyer
+  participant UI as Chat / booking UI
+  participant Action as Booking action
+  participant DB as Payload / MongoDB
+  Buyer->>UI: Request visit slots
+  UI->>Action: List slots for project
+  Action->>DB: Read future open slots
+  Action->>DB: Read active bookings for those slots
+  Action-->>UI: Return slots with estimated remaining capacity
+  Buyer->>UI: Choose a slot
+  UI->>Action: Submit booking request
+  Action->>DB: Load slot and active bookings
+  Action->>Action: Select deterministic unclaimed seat key
+  Action->>DB: Insert booking with unique claimKey
+  alt Insert succeeds
+    DB-->>Action: Booking created
+    Action-->>UI: Confirmation and reminder schedule
+  else Unique-key collision
+    DB-->>Action: Duplicate-key error
+    Action->>Action: Re-evaluate capacity / retry or report full
+    Action-->>UI: Updated availability result
+  end
+```
+
+The UI's remaining-capacity display is advisory. The server rechecks slot state and active bookings when creating the booking. A unique `claimKey` is intended to be the final guard against two requests claiming the same seat. Cancelled/no-show bookings release their claim by changing the key to a unique tombstone.
+
+**Operational limits:** demo slots are simulated because no real client calendar was supplied. Existing historical sample bookings are historical records, not available slots. A staging concurrency test and live unique-index inspection remain pending.
+
+### 5.4 Human handoff and assignment
+
+1. Buyer requests a person, or the assistant cannot safely answer.
+2. The current buyer message and assistant turn are persisted.
+3. The lead is flagged with a reason and a concise handoff summary.
+4. The assignment helper selects an active executive, preferring project/language fit and then the least-loaded candidate.
+5. The staff workspace exposes the lead, transcript, summary and owner for follow-up.
+6. Sales head reviews flagged chats.
+
+No real SMS, email, push or WhatsApp staff notification is connected. Assignment in the application is not equivalent to a delivered notification.
+
+### 5.5 Reminder lifecycle
+
+```mermaid
+sequenceDiagram
+  participant GH as GitHub Actions
+  participant API as Protected reminder route
+  participant DB as Payload / MongoDB
+  GH->>API: GET /api/cron/reminders + Bearer secret
+  API->>API: Validate CRON_SECRET
+  alt Invalid or missing secret
+    API-->>GH: 401 Unauthorized
+  else Authorized
+    API->>DB: Find due booked reminders not marked processed
+    loop Each due reminder
+      API->>DB: Read lead, slot and project
+      API->>API: Check DPDP consent and do-not-contact
+      API->>DB: Create unique delivery audit record
+      API->>DB: Mark reminder processed
+    end
+    API-->>GH: Counts and mock-only notice
+  end
+```
+
+The worker handles two due times: 24 hours and two hours before the visit. It checks `consentDpdp` and `doNotContact`, writes an idempotent `reminder-deliveries` audit record, and updates the booking's sent timestamp. The channel is **mock**: a “sent” result means simulated processing, not an SMS or WhatsApp delivery.
+
+GitHub Actions invokes the protected endpoint every five minutes and supports manual dispatch. The endpoint has been invoked successfully; the recorded successful invocation processed zero due reminders. This verifies authentication and route execution for that run, not end-to-end delivery for a due reminder.
+
+---
+
+## 6. UX and interaction design
+
+### 6.1 Visual direction
+
+- Warm ivory backgrounds and generous whitespace establish a calm residential tone.
+- Deep forest green is reserved for primary actions and key navigation.
+- Charcoal text provides contrast; restrained brass accents are used sparingly.
+- Typography and spacing prioritize legibility over dense CRM-style tables.
+- Buyer journeys are mobile-first; staff tools prioritize scanability and clear ownership.
+
+### 6.2 Screen architecture
+
+| Screen | Primary user | Main job |
 |---|---|---|
-| Users | Name, email, phone, role | Optional sales-executive record |
-| Projects | Project label, locality, address, map coordinates, RERA, price range, configurations, public approval and demo flags | Visit slots and fact sheet |
-| Fact Sheet | Topic and approved English/Hindi/Gujarati answer | Project |
-| Leads | Lead code, contact, source, language, preferences, stage, consent, opt-out, duplicate link, assignee, response timestamps and handoff summary | User, project, executive |
-| Chat Messages | Role, message text and timestamp | Lead |
-| Sales Executives | Name, phone, language coverage, project coverage and active state | Leads |
-| Visit Slots | Start time, duration, capacity, open and demo-only flags | Project |
-| Bookings | Booking code, seat claim key, status and reminder timestamps | Lead, slot and project |
-| Reminder Deliveries | Idempotency key, channel, status, schedule and mock body | Booking and lead |
-| Source Spend | Source and spend for reporting period | Source dashboard |
+| Home / discovery | Buyer | Understand the offering and start an enquiry. |
+| Project overview | Buyer | Read only approved public project details. |
+| Concierge chat | Buyer | Choose language, consent, share needs, ask questions and request a person. |
+| Visit selection / confirmation | Buyer | Choose a future slot and review booking details. |
+| Sales overview | Executive / head | Monitor response, visits, attendance and source metrics. |
+| Lead inbox | Executive / head | Find and prioritize leads by source, stage, duplicate and flag. |
+| Lead detail | Executive / head | Review preferences, transcript, summary and assignment. |
+| Visit management | Executive / head | Review bookings and record attended/no-show/cancelled outcomes. |
+| Admin collections | Sales head / admin | Maintain approved project facts, sales roster, visit slots and spend. |
 
-The source tags cover property portal, 99acres, MagicBricks, social ads, website and hoarding. The sample brief's generic "Property portal" is represented by its own source value.
+### 6.3 Interaction principles
 
-## 5. Main workflows
+- Keep chat prompts short and use selectable choices for common answers.
+- Show consent separately from optional WhatsApp opt-in.
+- Explain unsupported answers plainly and provide a human path.
+- Do not show a slot as available unless it is future-dated and open at query time.
+- Label simulated slots and demo project content.
+- Provide loading, empty and error feedback rather than inert controls.
+- Preserve a clear return path between the buyer conversation and booking confirmation.
 
-### 5.1 Buyer registration and qualification
+---
 
-1. Buyer opens chat and chooses English, Hindi or Gujarati.
-2. Buyer enters name and mobile number and explicitly consents to processing.
-3. WhatsApp opt-in is recorded separately; DPDP consent does not imply WhatsApp consent.
-4. Lead is created with a source tag and normalized contact data.
-5. Duplicate lookup compares normalized phone/email and links a likely duplicate to the earlier record.
-6. Guided prompts capture 2/3 BHK and budget range.
+## 7. Security, privacy and compliance design
 
-### 5.2 Fact-sheet assistant
-
-1. Deterministic topic detection checks the selected project's approved fact-sheet rows first.
-2. If no deterministic answer is available, the server sends only the selected project's approved fact-sheet content and the buyer's question to Gemini.
-3. The model is required to return a structured supported/unsupported response.
-4. Unsupported, malformed, failed or uncertain answers are not guessed: the buyer is told a person will confirm, and the lead is flagged for handoff.
-5. A buyer can request a person at any point.
-
-The assistant must not invent project amenities, possession, location, RERA, approvals, inventory or availability. It must not quote final prices or discounts. The combined portfolio price range in the brief is not a project-specific offer.
-
-**Implementation distinction:** the chat is a guided conversational flow with a constrained Gemini fallback. Booking is a separate validated server action with database seat claims; the current implementation is not an autonomous LLM function-calling agent.
-
-### 5.3 Site-visit booking
-
-1. The server returns future, open slots for the selected project.
-2. Remaining capacity is calculated from active bookings.
-3. On selection, the server reloads the slot and active bookings.
-4. A deterministic seat claim key is written with the booking.
-5. A MongoDB unique index prevents two concurrent inserts from owning the same seat key.
-6. On a duplicate-key race, the booking flow retries another seat or reports the slot as full.
-7. Booking records receive reminder timestamps for 24 hours and two hours before the visit.
-
-Demo slots are simulated because the brief contains no real client calendar. They are explicitly marked demo-only and must not be represented as confirmed Company A availability.
-
-### 5.4 Human handoff
-
-The transcript is persisted before the summary and assignment are saved. The lead is flagged for review and assigned to an active executive based on language/project fit and current lead load. The sales head can review flagged chats. No external notification integration is connected.
-
-### 5.5 Reminder processing
-
-A protected route finds due reminder timestamps. It checks DPDP consent and do-not-contact state, creates an idempotent delivery audit record and marks the reminder as processed. The delivery channel is mock-only. GitHub Actions polls every five minutes; actual SMS/WhatsApp delivery is out of scope.
-
-## 6. UI and design
-
-The design uses warm ivory surfaces, deep forest green primary actions, charcoal text and restrained brass accents. The visual direction is calm and residential rather than a dense generic CRM.
-
-The key screens are:
-1. Public residential discovery.
-2. Buyer chat and consent.
-3. Guided preference capture and fact answers.
-4. Slot selection and booking confirmation.
-5. Sales lead inbox with source and duplicate status.
-6. Lead detail with transcript, handoff summary and assignment.
-7. Visit management and attendance outcomes.
-8. Sales dashboard and admin fact/slot maintenance.
-
-Buyer chat is mobile-first, with short prompts and selectable options to reduce typing. Staff screens prioritize scanability and clear ownership. Missing facts, unavailable slots and empty records must be represented honestly rather than filled with invented content.
-
-## 7. Security, privacy and compliance controls
-
-- Gemini and database credentials are server-side environment variables.
-- Buyer registration requires explicit consent; WhatsApp opt-in is separate.
-- Reminder processing checks consent and opt-out before mock delivery.
-- Staff roles are assigned by an administrator; public signup cannot grant staff roles.
-- Server actions validate input and check staff roles.
-- Project public approval defaults to false.
-- No RERA identifier, map coordinate, project address or project-specific price is fabricated.
-- Sample contacts use non-contactable placeholder phone values and false consent.
-- The project does not claim legal compliance certification; client/legal review is required before production messaging.
-
-## 8. Testing and deployment
-
-The repository includes unit tests for key domain logic. GitHub Actions runs the unit tests and generates Payload types before TypeScript checking. The latest recorded CI run for commit `bacae9472af748c5f4b1078e9907a66002058793` completed successfully. Vercel reports the corresponding production deployment as READY.
-
-These checks do not replace authenticated browser E2E tests or a concurrent booking integration test against a staging MongoDB database. Reminder scheduling remains unverified until the GitHub Actions secrets are configured and a workflow run succeeds.
-
-See [deployment.md](../deployment.md) for local setup, environment variable names, reviewer account provisioning and deployment instructions.
-
-## 9. Assumptions and limitations
-
-| ID | Assumption or missing information | Treatment |
+| Concern | Control in the application | Remaining responsibility |
 |---|---|---|
-| A1 | The 420 apartments and ₹65 lakh–₹1.2 crore range describe the combined portfolio. | Never present as project-specific inventory or final quote. |
-| A2 | Project 1 and Project 2 are anonymized labels. | Keep demo labels until the client provides approved identities. |
-| A3 | No project-specific RERA number, address or map coordinates were supplied. | Public approval remains disabled; do not fabricate them. |
-| A4 | No real visit calendar was supplied. | Future sample slots are simulated and labelled demo-only. |
-| A5 | No real sales roster or executive contact details were supplied. | Do not invent named client staff; use clearly identified demo records. |
-| A6 | The client supplied planning assumptions, not production analytics. | Show baseline context separately from measured application KPIs. |
-| A7 | The brief provides three sample lead rows; an additional uploaded sample PDF contains 18 rows. | Current seed imports the three brief rows only; the additional PDF dataset is not fully imported. |
-| A8 | Messaging integrations may be mocked. | Reminder audit records are mock-only; no WhatsApp/SMS is sent. |
-| A9 | No reviewer emails/passwords were supplied. | A secure script provisions buyer, executive and head accounts from private environment variables; no default passwords are committed. |
+| Authentication | Payload users/admins and application session helpers | Provision and test each reviewer role. |
+| Authorization | Collection access rules and server-side role checks | Execute role-by-role access tests. |
+| Input handling | Server-side normalization and validation in chat actions | Add automated abuse/rate-limit coverage before public scale. |
+| Secrets | Server environment variables; no API key committed | Rotate credentials if exposed and redeploy after changing production env. |
+| Buyer consent | `consentDpdp`, timestamp and separate `whatsappOptIn` | Client must approve notices, retention and legal basis. |
+| Opt-out | `doNotContact` and `optedOutAt`; reminder worker checks flag | Apply the same check to any future outbound provider. |
+| RERA | Project public approval defaults false; project facts are not invented | Client/legal team must validate registration and all promotional claims. |
+| AI safety | Approved fact context, constrained response format and human fallback | Evaluate adversarial prompts and localized answers before release. |
+| Booking integrity | Server capacity check and unique claim key | Verify deployed index and concurrent behavior in staging. |
+| Reminder audit | Unique delivery key and explicit mock channel | Provider callbacks and delivery receipts are not implemented. |
 
-## 10. What was cut and next steps
+This document describes engineering controls, not legal certification under the DPDP Act or RERA. Company A and its legal/compliance advisors must approve public content and communication practices.
 
-Cut by design: full CRM replacement, booking payments, allotment letters, outbound voice, live WhatsApp and external portal integrations.
+---
 
-Next:
-1. Provision reviewer accounts and test each role.
-2. Add the GitHub Actions reminder secrets and verify a successful worker run.
-3. Import and validate the full anonymized 18-row sample.
-4. Run browser-based buyer/staff E2E tests and a concurrent booking test against staging MongoDB.
-5. Obtain verified project facts, RERA records, addresses, map pins and real visit capacity from Company A.
-6. Connect portal/website ingestion and approved WhatsApp templates only after consent and provider setup.
-7. Validate KPI definitions and source spend with the sales head.
+## 8. Deployment and operations
+
+### 8.1 Production topology
+
+- **Application:** Vercel project `isocode-homiq`, deployed from `main`.
+- **Database:** MongoDB Atlas through Payload's Mongoose adapter.
+- **AI provider:** Gemini API, called server-side.
+- **Scheduled worker:** GitHub Actions workflow `.github/workflows/homiq-reminders.yml`.
+- **Protected endpoint:** `GET /api/cron/reminders`, requires `Authorization: Bearer <CRON_SECRET>`.
+
+### 8.2 Environment variable names
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | MongoDB connection string. |
+| `PAYLOAD_SECRET` | Payload signing/encryption secret. |
+| `GEMINI_API_KEY` | Server-side Gemini credential. |
+| `NEXT_PUBLIC_SITE_URL` | Canonical application URL. |
+| `CRON_SECRET` | Protects the reminder endpoint. |
+
+GitHub Actions repository secrets:
+
+- `HOMIQ_BASE_URL`: production or staging base URL.
+- `CRON_SECRET`: same secret configured for the target deployment.
+
+Never place secret values in this document, README, source control or screenshots.
+
+### 8.3 Local development
+
+See [deployment.md](../deployment.md) for exact prerequisites, install commands, environment setup, reviewer provisioning and run steps.
+
+---
+
+## 9. Verification record
+
+This table intentionally separates CI/build evidence from complete workflow verification.
+
+| Area | Current evidence | Status |
+|---|---|---|
+| Production build | Vercel production deployment reports READY for the recorded production commit. | Verified build/deployment |
+| Unit tests and type generation | Latest recorded CI run completed unit tests, Payload type generation and TypeScript validation. | Verified in CI |
+| Reminder endpoint auth | Protected endpoint invocation succeeded; zero due reminders processed in that run. | Endpoint execution verified |
+| Scheduled reminder delivery | Mock-only records; no external provider. | Partial / simulated |
+| Buyer, executive and sales-head authenticated journeys | No complete authenticated browser E2E run recorded. | Pending |
+| Multilingual supported/unsupported AI scenarios | Implemented in the chat flow; full role-based production E2E evidence not recorded. | Pending E2E |
+| Booking race behavior | Unique claim key declared in schema; live index options and concurrent staging test not confirmed. | Pending integration test |
+| Dashboard reconciliation | UI and calculations exist; no verified client spend/attendance dataset. | Pending data validation |
+| RERA, location and inventory | Client-approved values were not supplied. | External dependency |
+| WhatsApp/SMS | No provider configured. | Out of scope for current prototype |
+
+**Do not treat a green CI run or READY deployment as proof that every buyer-to-sales workflow has passed.**
+
+---
+
+## 10. Assumptions, constraints and decisions
+
+| ID | Assumption / missing input | Design decision |
+|---|---|---|
+| A1 | The 420 apartments and ₹65 lakh–₹1.2 crore range describe the combined portfolio. | Never use these as a project-specific final quote. |
+| A2 | “Project 1” and “Project 2” are anonymized labels. | Retain generic demo labels. |
+| A3 | Project-specific RERA IDs, addresses and map coordinates are absent. | Do not invent them; keep public approval disabled until verified. |
+| A4 | No actual visit calendar was provided. | Use clearly labelled demo slots only. |
+| A5 | No real sales roster or contact details were provided. | Use demo records only; do not impersonate client staff. |
+| A6 | Lead volume, spend and conversion rates are planning assumptions. | Mark them as baseline assumptions, not measured KPIs. |
+| A7 | Three sample leads are in the written brief. An additional 18-row PDF dataset has been referenced separately. | Current seed scope is the three written sample rows unless the additional file is reconciled. |
+| A8 | Messaging can be mocked for the prototype. | Reminder worker records simulated outcomes only. |
+| A9 | Reviewer identities were not provided in the brief. | Provision accounts using private environment variables; never commit default passwords. |
+| A10 | The brief asks for an AI assistant with a booking tool. | Current implementation keeps booking as a server-side domain action rather than LLM function calling; this is a conscious safety and scope decision. |
+
+### Important engineering trade-offs
+
+- **Duplicate detection:** pre-insert lookup is simple and useful for a demo, but not race-proof. A normalized-contact uniqueness strategy needs a product decision about shared family phone numbers and multiple enquiries.
+- **Booking:** seat claims are designed to use a unique database key. The production database index must be inspected and concurrency tested before claiming the guarantee is proven operationally.
+- **AI:** the model is not trusted to decide availability or write bookings. It can only answer from approved facts; booking remains deterministic.
+- **Reminders:** five-minute polling is acceptable for the prototype but is not an exact-time delivery guarantee. A production messaging provider and delivery callbacks are future work.
+- **Reporting:** cost-per-visit depends on accurate source spend and attendance outcomes. The dashboard cannot produce trustworthy client ROI until those inputs are maintained.
+
+---
+
+## 11. Delivery plan and next engineering steps
+
+1. Create a disposable staging database and seed only anonymized demo records.
+2. Provision buyer, executive and sales-head reviewer accounts through the private provisioning script.
+3. Run authenticated browser journeys for registration, consent, duplicate handling, English/Hindi/Gujarati chat, unsupported-question handoff, booking, assignment, attendance and dashboard.
+4. Inspect MongoDB indexes and confirm `claimKey` is actually unique in the target database.
+5. Run simultaneous booking requests against the same capacity-limited slot and assert that successful bookings never exceed capacity.
+6. Create due reminder fixtures for consented, no-consent and opted-out leads; verify idempotency and audit statuses.
+7. Reconcile the additional sample dataset, if supplied, before importing it.
+8. Obtain approved RERA details, project addresses, map coordinates, fact sheets, sales roster and real visit calendar from Company A.
+9. Connect portal ingestion and WhatsApp only after provider, opt-in template, consent and callback design is approved.
+10. Reconcile dashboard formulas with the sales head's definitions and verified source-spend records.
+
+---
+
+## 12. Submission references
+
+- **Source repository:** https://github.com/MadhuTiwari-345/IsoCode
+- **Live application:** https://isocode-homiq.vercel.app
+- **Deployment guide:** [deployment.md](../deployment.md)
+- **Operational README:** [README.md](../README.md)
+
+HOMIQ is designed to make the first response useful, the next step clear and the handoff accountable. The product should only move from demo to live sales use after the pending identity, data, booking and messaging checks are completed.
