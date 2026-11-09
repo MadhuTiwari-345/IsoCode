@@ -319,20 +319,35 @@ async function geminiFactAnswer(projectId: string | undefined, question: string,
   const language = lang === 'hi' ? 'Hindi' : lang === 'gu' ? 'Gujarati' : 'English'
   const approvedFacts = facts.docs.map((fact) => ({ topic: fact.topic, answer: lang === 'hi' ? (fact.answerHi || fact.answerEn) : lang === 'gu' ? (fact.answerGu || fact.answerEn) : fact.answerEn })).filter((fact) => Boolean(fact.answer))
   if (!approvedFacts.length) return null
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: 'You are HOMIQ, a careful residential sales concierge. Use ONLY the approved fact sheet supplied by the user. Never infer or invent any property fact, price, discount, availability, possession, amenity, RERA registration, location, approval, inventory or promise. Never quote a final price or discount. If the sheet does not explicitly answer, return supported=false. Answer in ' + language + '. Return JSON only: supported (boolean), answer (string).' }] },
-      contents: [{ role: 'user', parts: [{ text: JSON.stringify({ question, approvedFacts }) }] }],
-      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300, thinkingConfig: { thinkingLevel: 'low' } },
-    }),
-    signal: AbortSignal.timeout(25000),
-  })
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '')
-    throw new Error(`Gemini request failed (${response.status}): ${detail.slice(0, 240)}`)
+  let response: Response | null = null
+  let lastError = ''
+  // Use the primary stable model first, then stable fallbacks when Google
+  // reports temporary capacity pressure (429/503) or a short timeout.
+  for (const model of ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite']) {
+    try {
+      const candidate = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: 'You are HOMIQ, a careful residential sales concierge. Use ONLY the approved fact sheet supplied by the user. Never infer or invent any property fact, price, discount, availability, possession, amenity, RERA registration, location, approval, inventory or promise. Never quote a final price or discount. If the sheet does not explicitly answer, return supported=false. Answer in ' + language + '. Return JSON only: supported (boolean), answer (string).' }] },
+          contents: [{ role: 'user', parts: [{ text: JSON.stringify({ question, approvedFacts }) }] }],
+          generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300, thinkingConfig: { thinkingLevel: 'low' } },
+        }),
+        signal: AbortSignal.timeout(8000),
+      })
+      if (candidate.ok) {
+        response = candidate
+        break
+      }
+      const detail = await candidate.text().catch(() => '')
+      lastError = `Gemini ${model} failed (${candidate.status}): ${detail.slice(0, 240)}`
+      if (candidate.status !== 429 && candidate.status !== 503) throw new Error(lastError)
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : 'Gemini request failed'
+      if (!/timeout|429|503|UNAVAILABLE/i.test(lastError)) throw error
+    }
   }
+  if (!response) throw new Error(lastError || 'All Gemini models are temporarily unavailable')
   const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> }
   const raw = data.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('').trim()
   if (!raw) return null
