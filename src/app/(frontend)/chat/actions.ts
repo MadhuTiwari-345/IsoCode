@@ -196,7 +196,7 @@ export async function chooseOption(input: { ctx: Ctx; action: string; value?: st
   }
 
   if (input.action === 'other') {
-    const projects = (await payload.find({ collection: 'projects', where: { approvedForPublic: { equals: true } }, depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
+    const projects = (await payload.find({ collection: 'projects', where: { or: [{ approvedForPublic: { equals: true } }, { demoOnly: { equals: true } }] }, depth: 0, limit: 10, sort: 'name', overrideAccess: true })).docs
     const alt = projects.find((p) => p.id !== ctx.projectId)
     if (!alt) return reply(ctx, { messages: [t(lang, 'askVisit')], chips: nextChips(lang, false) }, label)
     const next = { ...ctx, projectId: alt.id }
