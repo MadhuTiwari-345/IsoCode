@@ -26,7 +26,7 @@ Next.js 16 · React 19 · TypeScript 6 · Payload CMS 4 · MongoDB · Tailwind C
 | Check | Verified state |
 | --- | --- |
 | Production deployment | [READY on `main`](https://vercel.com/mt1499961-2971s-projects/isocode-homiq/75n9HkS8x2Wzx1iQEBRRbY9uiZbh) |
-| CI | [Latest run passed](https://github.com/MadhuTiwari-345/IsoCode/actions/runs/42618682477) |
+| CI | [Latest run passed](https://github.com/MadhuTiwari-345/IsoCode/actions/runs/42621394254) |
 | Reminder endpoint | Authenticated GitHub Actions invocation succeeded; last observed run processed 0 due reminders |
 | Reminder channel | Mock audit only; no SMS/WhatsApp provider connected |
 | Branches | `main` only |
