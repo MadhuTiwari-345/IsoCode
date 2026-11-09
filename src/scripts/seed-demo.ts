@@ -64,9 +64,9 @@ for (const sample of sampleLeads) {
     whatsappOptIn: false,
   } as Partial<Lead>
   if (existing.docs[0]) {
-    await payload.update({ collection: 'leads', id: existing.docs[0].id, data, overrideAccess: true })
+    await payload.update({ collection: 'leads', id: existing.docs[0].id, data, draft: false, overrideAccess: true })
   } else {
-    await payload.create({ collection: 'leads', data, overrideAccess: true })
+    await payload.create({ collection: 'leads', data, draft: false, overrideAccess: true })
   }
   const savedLead = await payload.find({
     collection: 'leads',
