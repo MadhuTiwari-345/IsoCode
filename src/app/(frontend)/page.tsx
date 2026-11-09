@@ -4,7 +4,7 @@ import SiteFooter from '@/components/SiteFooter'
 import { getProjects, formatLakh, projectPhoto, PHOTOS } from '@/lib/catalog'
 
 const steps = [
-  ['Ask in your language', 'Chat in English, हिन्दी or ગુજરાતી. Answers come only from our verified project facts.'],
+  ['Ask in your language', 'Chat in English, हिन्दी or ગુજરાતી. Answers use only facts supplied in the interview brief; missing details go to a human advisor.'],
   ['Share what you need', 'Home size and budget. We match you to the right project.'],
   ['Choose an available time', 'See published visit slots and request a booking.'],
   ['Meet your advisor', 'Your conversation summary is shared with the assigned sales advisor.'],
@@ -85,7 +85,7 @@ export default async function HomePage() {
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-moss">Visit in person</p>
             <h2 className="mt-3 font-serif text-5xl font-medium leading-none tracking-tight md:text-6xl">See the light before you decide.</h2>
-            <p className="mt-6 max-w-md leading-relaxed text-mute">Every visit is about an hour, led by a sales advisor who already knows your needs. We send a location pin and gentle reminders one day and two hours before.</p>
+            <p className="mt-6 max-w-md leading-relaxed text-mute">Choose from simulated prototype slots. The system records reminders for one day and two hours before; message delivery is mocked, and real location details must be confirmed by the sales team.</p>
             <ol className="mt-8 space-y-4">
               {steps.map(([h, d], i) => <li key={h} className="flex gap-4"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-moss-soft text-sm text-moss">{i + 1}</span><div><p className="font-medium">{h}</p><p className="text-sm leading-relaxed text-mute">{d}</p></div></li>)}
             </ol>
