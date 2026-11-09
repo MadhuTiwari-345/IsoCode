@@ -27,6 +27,34 @@
 
 <p align="center"><em>Thoughtful homes deserve thoughtful conversations.</em></p>
 
+## ✅ Reviewer handoff status (9 November 2026)
+
+**Repository:** https://github.com/MadhuTiwari-345/IsoCode  
+**Production app:** https://isocode-homiq.vercel.app  
+**Last verified successful production build:** commit `306749bef0cb10e8af6d853999e7a3d360ef59a5a` (Vercel deployment `dpl_CSUdyrbEa1QossSmAzW7JnCdAW5g`, state `READY`).
+
+The Vercel deployment history also contains failed and cancelled attempts. Those historical records remain visible by design; they do not overwrite the successful deployment. The most recent repository changes add reviewer-account provisioning and CI checks, so they still need their own CI result and production deployment before being treated as live.
+
+### Honest completion checklist
+
+| Item | Current state |
+| --- | --- |
+| Buyer, executive and sales-head roles | Role model exists. A new secure provisioning script is available; reviewer accounts have **not** been created because unique reviewer emails and passwords must be supplied privately. |
+| Automated checks | CI workflow added for unit tests and TypeScript. Its first run is pending. |
+| Reminder schedule | GitHub Actions workflow is scheduled every five minutes. Repository secrets `HOMIQ_BASE_URL` and `CRON_SECRET` must be added by a repository administrator; the connected GitHub integration cannot write Actions secrets. No successful scheduled run is verified yet. |
+| Gemini key | Vercel has a `GEMINI_API_KEY` environment-variable entry. The key value is intentionally never displayed here. Confirm the rotated key is the value currently saved in Vercel, then redeploy. |
+| Sample data | Three brief leads exist in the database. The seed script supports those three and demo-only future slots. The separately supplied 18-row PDF is not fully imported. |
+| Project/RERA/location facts | Two demo project records are present but not approved for public display. Real RERA IDs, addresses, map coordinates and verified availability were not supplied; do not invent them. |
+| Production E2E | Public route responses were checked previously, but authenticated end-to-end flows and concurrent booking have not been fully verified in production. |
+
+### Provision reviewer accounts safely
+
+The repository now includes `pnpm provision:reviewers`. It creates or resets three accounts in the Payload `users` collection: buyer, executive and head. It requires six private environment variables: `HOMIQ_REVIEWER_BUYER_EMAIL`, `HOMIQ_REVIEWER_BUYER_PASSWORD`, `HOMIQ_REVIEWER_EXECUTIVE_EMAIL`, `HOMIQ_REVIEWER_EXECUTIVE_PASSWORD`, `HOMIQ_REVIEWER_HEAD_EMAIL`, and `HOMIQ_REVIEWER_HEAD_PASSWORD`. Passwords must be at least 14 characters. Set them only in a private local environment connected to the intended database; do not commit them or paste them into chat. The script logs account emails and roles only, never passwords.
+
+See [deployment.md](deployment.md) for exact setup and reviewer instructions.
+
+---
+
 ## 🏡 About HOMIQ
 
 HOMIQ is a residential discovery and lead-management application for a developer with two live residential projects in Ahmedabad. It is designed to connect the buyer journey with the sales team's daily workflow, from the first enquiry to a site visit.
