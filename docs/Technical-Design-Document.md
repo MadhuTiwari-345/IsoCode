@@ -58,7 +58,7 @@ Targets are acceptance goals for a future operating rollout. The prototype does 
 - Live portal integrations and live WhatsApp Business messaging.
 - A real client calendar or external messaging provider.
 
-The product is a focused workflow, not a claim that all 60 staff operations or every external lead source have been integrated.
+The product is a focused, end-to-end reviewer demonstration of the lead-to-visit workflow. Synthetic project, map, slot and advisor fixtures make the journey runnable without Company A integrations. It does not claim that all 60 staff operations or every external lead source have been integrated.
 
 ---
 
@@ -372,7 +372,7 @@ sequenceDiagram
 
 The UI's remaining-capacity display is advisory. The server rechecks slot state and active bookings when creating the booking. A unique `claimKey` is intended to be the final guard against two requests claiming the same seat. Cancelled/no-show bookings release their claim by changing the key to a unique tombstone.
 
-**Operational limits:** demo slots are simulated because no real client calendar was supplied. Existing historical sample bookings are historical records, not available slots. A staging concurrency test and live unique-index inspection remain pending.
+**Demo operating mode:** the seeded future slots are synthetic fixtures created for reviewer testing because no client calendar was supplied. They are real records in the demo database and the booking action enforces the configured capacity rules against them; they are not appointments in Company A's calendar. Historical sample bookings remain historical records and are not offered as available slots. A staging concurrency test and live unique-index inspection remain separate verification items; do not claim those checks passed without recorded evidence.
 
 ### 5.4 Human handoff and assignment
 
@@ -444,7 +444,7 @@ GitHub Actions invokes the protected endpoint every five minutes and supports ma
 - Show consent separately from optional WhatsApp opt-in.
 - Explain unsupported answers plainly and provide a human path.
 - Do not show a slot as available unless it is future-dated and open at query time.
-- Label simulated slots and demo project content.
+- Present synthetic project, map, advisor and slot information as clearly identified demo fixtures. Keep the booking interaction fully testable; do not imply that a demo appointment is a confirmed Company A site visit.
 - Provide loading, empty and error feedback rather than inert controls.
 - Preserve a clear return path between the buyer conversation and booking confirmation.
 
@@ -529,9 +529,9 @@ This table intentionally separates CI/build evidence from complete workflow veri
 |---|---|---|
 | A1 | The 420 apartments and ₹65 lakh–₹1.2 crore range describe the combined portfolio. | Never use these as a project-specific final quote. |
 | A2 | “Project 1” and “Project 2” are anonymized labels. | Retain generic demo labels. |
-| A3 | Project-specific RERA IDs, addresses and map coordinates are absent. | Do not invent them; keep public approval disabled until verified. |
-| A4 | No actual visit calendar was provided. | Use clearly labelled demo slots only. |
-| A5 | No real sales roster or contact details were provided. | Use demo records only; do not impersonate client staff. |
+| A3 | Project-specific RERA IDs, verified addresses and surveyed coordinates are absent. | Use synthetic demo map points for the reviewer flow; label registration as demo-only and never imply legal validity. |
+| A4 | No actual visit calendar was provided. | Seed future synthetic slots in the demo database so capacity, booking and reminders can be exercised; never call them Company A availability. |
+| A5 | No real sales roster or contact details were provided. | Use a clearly named simulated advisor record for assignment and handoff; do not impersonate an actual employee. |
 | A6 | Lead volume, spend and conversion rates are planning assumptions. | Mark them as baseline assumptions, not measured KPIs. |
 | A7 | Three sample leads are in the written brief. An additional 18-row PDF dataset has been referenced separately. | Current seed scope is the three written sample rows unless the additional file is reconciled. |
 | A8 | Messaging can be mocked for the prototype. | Reminder worker records simulated outcomes only. |
@@ -550,16 +550,15 @@ This table intentionally separates CI/build evidence from complete workflow veri
 
 ## 11. Delivery plan and next engineering steps
 
-1. Create a disposable staging database and seed only anonymized demo records.
-2. Provision buyer, executive and sales-head reviewer accounts through the private provisioning script.
-3. Run authenticated browser journeys for registration, consent, duplicate handling, English/Hindi/Gujarati chat, unsupported-question handoff, booking, assignment, attendance and dashboard.
+1. Use the seeded reviewer dataset to walk through buyer registration, consent, duplicate handling, multilingual chat, unsupported-question handoff, demo booking, advisor assignment, attendance and dashboard review.
+2. Provision separate buyer, executive and sales-head reviewer accounts using the private provisioning script and dedicated credentials.
+3. Run the complete authenticated browser journey on the deployed environment or an isolated staging database; record the run and any failures rather than inferring E2E success from a green build.
 4. Inspect MongoDB indexes and confirm `claimKey` is actually unique in the target database.
-5. Run simultaneous booking requests against the same capacity-limited slot and assert that successful bookings never exceed capacity.
-6. Create due reminder fixtures for consented, no-consent and opted-out leads; verify idempotency and audit statuses.
-7. Reconcile the additional sample dataset, if supplied, before importing it.
-8. Obtain approved RERA details, project addresses, map coordinates, fact sheets, sales roster and real visit calendar from Company A.
+5. Run simultaneous booking requests against the same capacity-limited demo slot in staging and assert successful bookings never exceed capacity.
+6. Create due reminder fixtures for consented, no-consent and opted-out leads; verify idempotency and audit statuses. The provider remains mock-only.
+7. Reconcile dashboard formulas with the known demo spend and attendance fixtures.
+8. Before real sales use, replace all synthetic project, map, registration, advisor and slot fixtures with client-approved records.
 9. Connect portal ingestion and WhatsApp only after provider, opt-in template, consent and callback design is approved.
-10. Reconcile dashboard formulas with the sales head's definitions and verified source-spend records.
 
 ---
 
@@ -571,3 +570,19 @@ This table intentionally separates CI/build evidence from complete workflow veri
 - **Operational README:** [README.md](../README.md)
 
 HOMIQ is designed to make the first response useful, the next step clear and the handoff accountable. The product should only move from demo to live sales use after the pending identity, data, booking and messaging checks are completed.
+
+
+## 13. Reviewer demo mode and synthetic fixtures
+
+The absence of Company A's internal operating data should not prevent a reviewer from exercising the product. HOMIQ therefore has a deliberate demo dataset:
+
+- **Projects:** Project 01 and Project 02 are anonymized labels from the brief.
+- **Map:** seeded Ahmedabad coordinates are illustrative UI fixtures, not verified site entrances or navigation directions.
+- **RERA:** demo-only placeholder text is not a registration number and must not appear as a valid compliance claim.
+- **Availability:** future slots are persisted demo records with capacity. The application books against these records and prevents over-capacity claims according to its seat-claim implementation; the slots are not Company A's live calendar.
+- **Sales assignment:** the simulated advisor allows the reviewer to inspect assignment and transcript handoff without inventing an employee identity.
+- **Lead examples:** the three lead IDs and names in the written brief are sample data. Placeholder contact details are non-contactable and consent flags remain false.
+
+The distinction is between **software behavior** and **business truth**. Registration, chat persistence, booking persistence, handoff, role-based workspace and dashboard behavior can be demonstrated with synthetic data. Real site directions, legal registration, employee contact, customer messaging and actual visit availability require client-authorized values.
+
+For reviewer clarity, the UI should avoid repeatedly calling the entire website a “prototype”. Use a polished product experience and reserve concise demo labels for the specific synthetic facts that need disclosure (map, appointment, advisor and registration placeholder). Do not remove those disclosures where a buyer could otherwise mistake invented details for a real property commitment.
