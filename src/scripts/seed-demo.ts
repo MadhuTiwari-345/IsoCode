@@ -52,7 +52,7 @@ for (const sample of sampleLeads) {
     depth: 0,
     overrideAccess: true,
   })
-  const data: Partial<Lead> = {
+  const data = {
     ...sample,
     // Deliberately non-contactable placeholders. Replace only with consented
     // test numbers before exercising any messaging integration.
@@ -62,7 +62,7 @@ for (const sample of sampleLeads) {
     enquiredAt: new Date('2026-10-30T09:00:00+05:30').toISOString(),
     consentDpdp: false,
     whatsappOptIn: false,
-  }
+  } as Partial<Lead>
   if (existing.docs[0]) {
     await payload.update({ collection: 'leads', id: existing.docs[0].id, data, overrideAccess: true })
   } else {
@@ -76,7 +76,8 @@ for (const sample of sampleLeads) {
     overrideAccess: true,
   })
   if (!savedLead.docs[0]) throw new Error(`Could not save demo lead ${sample.leadCode}`)
-  saved.set(sample.leadCode, savedLead.docs[0].id)
+  const savedLeadDoc = savedLead.docs[0] as Lead
+  saved.set(sample.leadCode, String(savedLeadDoc.id))
 }
 
 const hardikId = saved.get('LD-58210')!
