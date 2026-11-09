@@ -33,13 +33,13 @@ export default async function VisitPage({ params }: { params: Promise<{ code: st
     <SiteHeader />
     <main className="mx-auto max-w-2xl px-6 py-10">
       <BackLink href="/account">My visits</BackLink>
-      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-brass">{demoSlot ? 'Visit request' : b.status === 'cancelled' ? 'Cancelled' : 'Visit confirmed'} · {b.code}</p>
+      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-brass">{demoSlot ? 'Visit request · awaiting advisor confirmation' : b.status === 'cancelled' ? 'Cancelled' : 'Visit confirmed'} · {b.code}</p>
       <h1 className="mt-3 font-serif text-4xl leading-tight tracking-tight">{fmtDay(slot.startsAt)}<br />at {fmtTime(slot.startsAt)}</h1>
       <p className="mt-4 text-mute">{project.name}, {project.locality}. About {slot.durationMinutes ?? 60} minutes.</p>
 
-      {demoSlot && <p className="mt-5 rounded-xl border border-line bg-card px-4 py-3 text-sm leading-relaxed text-mute">This is a requested time from the demonstration schedule. Company A has not confirmed this appointment or its location yet. Your sales advisor will confirm the visit details before you travel.</p>}
+      {demoSlot && <p className="mt-5 rounded-xl border border-line bg-card px-4 py-3 text-sm leading-relaxed text-mute">Your selected time is recorded as a visit request. A sales advisor will confirm the appointment and verified location with you before you travel.</p>}
       <div className="mt-10 overflow-hidden rounded-2xl border border-line">
-        {hasMapPin ? <><iframe title={`Map of ${project.name}`} className="h-64 w-full" loading="lazy" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${q}`} /><div className="flex flex-wrap items-center justify-between gap-3 bg-card p-5"><p className="max-w-sm text-sm leading-relaxed">{project.address}</p><a className="rounded-full btn-grad px-5 py-2.5 text-sm font-medium text-white hover:brightness-110" href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noreferrer">Open in Maps</a></div></> : <div className="bg-card p-5 text-sm leading-relaxed text-mute">The verified project address and map pin have not been supplied in the interview brief. A sales advisor must confirm the location before any real visit.</div>}
+        {hasMapPin ? <><iframe title={`Map of ${project.name}`} className="h-64 w-full" loading="lazy" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${q}`} /><div className="flex flex-wrap items-center justify-between gap-3 bg-card p-5"><p className="max-w-sm text-sm leading-relaxed">{project.address}</p><a className="rounded-full btn-grad px-5 py-2.5 text-sm font-medium text-white hover:brightness-110" href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noreferrer">Open in Maps</a></div></> : <div className="bg-card p-5 text-sm leading-relaxed text-mute">The site address and map pin are awaiting verification. Your advisor will share the correct directions when confirming the visit.</div>}
       </div>
       {exec && (
         <section className="mt-10 border-t border-line pt-8">
