@@ -80,7 +80,7 @@ export async function addSlot(d: { project: string; startsAtLocal: string; capac
     const payload = await getPayloadClient()
     const clash = await payload.count({ collection: 'visit-slots', where: { and: [{ project: { equals: d.project } }, { startsAt: { equals: start.toISOString() } }] }, overrideAccess: true })
     if (clash.totalDocs > 0) return { ok: false, error: 'There is already a slot at that time.' }
-    await payload.create({ collection: 'visit-slots', data: { project: d.project, startsAt: start.toISOString(), durationMinutes: 60, capacity, isOpen: true }, overrideAccess: true })
+    await payload.create({ collection: 'visit-slots', data: { project: d.project, startsAt: start.toISOString(), durationMinutes: 60, capacity, isOpen: true, demoOnly: false }, overrideAccess: true })
     return { ok: true }
   } catch (e) { return { ok: false, error: (e as Error).message } }
 }
