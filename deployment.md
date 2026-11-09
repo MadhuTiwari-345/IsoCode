@@ -99,7 +99,7 @@ Then set dedicated reviewer credentials in the current PowerShell session. Repla
 ```powershell
 $env:HOMIQ_REVIEWER_EXECUTIVE_EMAIL = "sales.executive.demo@example.com"
 $env:HOMIQ_REVIEWER_EXECUTIVE_NAME = "HOMIQ Demo Sales Executive"
-$env:HOMIQ_REVIEWER_EXECUTIVE_PHONE = "+91 90000 00001"
+$env:HOMIQ_REVIEWER_EXECUTIVE_PHONE = "0000000000"
 $env:HOMIQ_REVIEWER_EXECUTIVE_PASSWORD = Read-Host "Executive password (14+ characters)"
 
 $env:HOMIQ_REVIEWER_HEAD_EMAIL = "sales.head.demo@example.com"
