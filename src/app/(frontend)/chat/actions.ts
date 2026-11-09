@@ -243,9 +243,10 @@ async function flag(leadId: string | undefined, reason: string, pendingBuyerText
   const payload = await getPayloadClient()
   const lead = await payload.findByID({ collection: 'leads', id: leadId, depth: 0, overrideAccess: true }).catch(() => null)
   if (!lead) return
-  const exec = lead.assignedTo
+  const assignedExec = lead.assignedTo
     ? await payload.findByID({ collection: 'sales-executives', id: lead.assignedTo as string, depth: 0, overrideAccess: true }).catch(() => null)
-    : await pickExec(lead.project as string | undefined, (lead.language as Lang) || 'en')
+    : null
+  const exec = assignedExec && !/demo|simulated/i.test(assignedExec.name) ? assignedExec : await pickExec(lead.project as string | undefined, (lead.language as Lang) || 'en')
   const transcript = await payload.find({
     collection: 'chat-messages', where: { lead: { equals: leadId } },
     depth: 0, limit: 1000, sort: 'createdAt', pagination: false, overrideAccess: true,
@@ -271,9 +272,10 @@ async function handoffToPerson(ctx: Ctx, reason: string, buyerText?: string): Pr
   const lead = ctx.leadId
     ? await payload.findByID({ collection: 'leads', id: ctx.leadId, depth: 0, overrideAccess: true }).catch(() => null)
     : null
-  const exec = lead?.assignedTo
+  const assignedExec = lead?.assignedTo
     ? await payload.findByID({ collection: 'sales-executives', id: lead.assignedTo as string, depth: 0, overrideAccess: true }).catch(() => null)
-    : await pickExec(ctx.projectId, lang)
+    : null
+  const exec = assignedExec && !/demo|simulated/i.test(assignedExec.name) ? assignedExec : await pickExec(ctx.projectId, lang)
   const execName = exec?.name ?? ''
 
   // Save the buyer's triggering message and the assistant's handoff response
@@ -427,7 +429,8 @@ export async function bookVisit(input: { ctx: Ctx; slotId: string; label?: strin
   }
   const full = await payload.findByID({ collection: 'bookings', id: booking.id, depth: 0, overrideAccess: true })
   const project = await getProject(ctx.projectId)
-  const exec = lead.assignedTo ? await payload.findByID({ collection: 'sales-executives', id: lead.assignedTo as string, depth: 0, overrideAccess: true }).catch(() => null) : await pickExec(ctx.projectId, lang)
+  const assignedExec = lead.assignedTo ? await payload.findByID({ collection: 'sales-executives', id: lead.assignedTo as string, depth: 0, overrideAccess: true }).catch(() => null) : null
+  const exec = assignedExec && !/demo|simulated/i.test(assignedExec.name) ? assignedExec : await pickExec(ctx.projectId, lang)
 
   // Chat summary for the handoff.
   const asked = (await payload.find({ collection: 'chat-messages', where: { and: [{ lead: { equals: lead.id } }, { role: { equals: 'buyer' } }] }, depth: 0, limit: 20, sort: 'createdAt', overrideAccess: true })).docs
