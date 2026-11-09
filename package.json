@@ -14,7 +14,8 @@
     "db:migrate": "payload migrate",
     "db:migrate:create": "payload migrate:create",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "seed:demo": "payload run src/scripts/seed-demo.ts"
+    "seed:demo": "payload run src/scripts/seed-demo.ts",
+    "provision:reviewers": "payload run src/scripts/provision-reviewer-accounts.ts"
   },
   "dependencies": {
     "@payloadcms/next": "4.0.0-beta.4",
