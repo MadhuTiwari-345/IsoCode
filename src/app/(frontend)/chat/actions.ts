@@ -325,7 +325,10 @@ async function geminiFactAnswer(projectId: string | undefined, question: string,
     }),
     signal: AbortSignal.timeout(12000),
   })
-  if (!response.ok) throw new Error('Gemini request failed')
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '')
+    throw new Error(`Gemini request failed (${response.status}): ${detail.slice(0, 240)}`)
+  }
   const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> }
   const raw = data.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('').trim()
   if (!raw) return null
