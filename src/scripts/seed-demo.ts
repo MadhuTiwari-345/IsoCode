@@ -1,6 +1,5 @@
 import { getPayload } from 'payload'
 import config from '../payload.config'
-import type { Lead } from '../payload-types'
 
 const payload = await getPayload({ config })
 const projects = await payload.find({
@@ -62,7 +61,7 @@ for (const sample of sampleLeads) {
     enquiredAt: new Date('2026-10-30T09:00:00+05:30').toISOString(),
     consentDpdp: false,
     whatsappOptIn: false,
-  } as Partial<Lead>
+  }
   if (existing.docs[0]) {
     await payload.update({ collection: 'leads', id: existing.docs[0].id, data, draft: false, overrideAccess: true })
   } else {
@@ -76,8 +75,7 @@ for (const sample of sampleLeads) {
     overrideAccess: true,
   })
   if (!savedLead.docs[0]) throw new Error(`Could not save demo lead ${sample.leadCode}`)
-  const savedLeadDoc = savedLead.docs[0] as unknown as Lead
-  saved.set(sample.leadCode, String(savedLeadDoc.id))
+  saved.set(sample.leadCode, String(savedLead.docs[0].id))
 }
 
 const hardikId = saved.get('LD-58210')!
