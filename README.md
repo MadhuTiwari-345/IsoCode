@@ -479,19 +479,50 @@ These are product requirements and operating safeguards. Their presence in this 
 
 Reminder timestamps are data only until a delivery provider and scheduled execution process are configured.
 
-## 🧭 Operational roadmap
+## 🧭 Operational status
 
-- [x] Production deployment from `main` is READY.
-- [x] CI passed unit tests, Payload type generation and TypeScript validation on the current production commit.
-- [x] Protected reminder endpoint was invoked successfully by GitHub Actions; response confirmed mock processing with zero due reminders.
-- [x] GitHub Actions repository secrets are configured sufficiently for the successful manual reminder run.
-- [ ] Provision reviewer accounts using private credentials and the documented script.
-- [ ] Run authenticated buyer, executive and sales-head journeys against a disposable/staging dataset.
-- [ ] Run a real concurrent booking test against the production-equivalent database and confirm the unique seat-claim index is deployed.
-- [ ] Replace demo project facts with client-approved RERA identifiers, addresses, map coordinates, inventory and visit slots before enabling public project pages.
-- [ ] Connect an approved WhatsApp/SMS provider only after consent, opt-in templates and delivery callbacks are configured.
-- [ ] Validate dashboard metrics against verified operational spend and visit outcomes.
-- [ ] Import and reconcile any additional client-provided sample dataset before using it in reporting.
+HOMIQ is deployed, and its automated build checks are passing. The status below separates verified engineering checks from workflows that still need realistic test data or client input.
+
+### Verified
+
+| Area | Evidence |
+| --- | --- |
+| Production deployment | Vercel reports the latest deployment from `main` as **READY**. |
+| CI | Unit tests, Payload type generation and TypeScript validation passed in the recorded CI run. |
+| Reminder endpoint | Protected endpoint accepted an authorized GitHub Actions invocation. That run processed **zero due reminders**. |
+| Reminder scheduler configuration | GitHub Actions workflow and required repository secrets have been configured sufficiently for the successful invocation. |
+| Repository workflow | `main` is the single maintained branch. |
+
+### Needs end-to-end verification
+
+| Area | What must be tested |
+| --- | --- |
+| Reviewer roles | Provision separate buyer, sales-executive and sales-head accounts using private credentials; verify sign-in and role boundaries. |
+| Buyer journey | Registration, consent, duplicate indication, qualification and sign-in. |
+| AI behavior | English, Hindi and Gujarati supported facts; unsupported questions; price/discount refusal; request-human handoff. |
+| Booking | Future slot selection, successful booking, full-slot rejection and simultaneous requests against the same capacity. |
+| Handoff | Persisted transcript, summary, named demo executive assignment and sales-head review. |
+| Dashboard | Reconcile response time, visits, show-up rate and source cost against a known staging dataset. |
+| Reminders | Create due fixtures for consented, no-consent and opted-out leads; verify audit outcomes and idempotency. |
+| Database guard | Inspect the deployed MongoDB `claimKey` index options and run a concurrent staging test. |
+
+### Requires client or provider input
+
+- Verified project names, project-specific facts, RERA registration numbers, addresses and map coordinates.
+- Confirmed inventory and real visit-slot capacity.
+- Approved sales roster, languages, project coverage and reviewer identities.
+- Verified source spend and attendance data for meaningful KPI reporting.
+- WhatsApp/SMS provider credentials, approved templates, opt-in process and delivery callbacks.
+
+### Important limitations
+
+- The reminder worker currently creates **mock audit records**. A successful run does not mean a real SMS or WhatsApp message was delivered.
+- The last successful reminder invocation processed zero due records; due-record delivery and consent scenarios still need fixture-based tests.
+- The booking schema declares a unique seat-claim key, but live index options and concurrent behavior must be verified before claiming production concurrency is proven.
+- Client project pages must remain unpublished until RERA and factual details are verified.
+
+See [deployment.md](deployment.md) for reproducible setup and test instructions, and [the Technical Design Document](docs/Technical-Design-Document.md) for architecture, data model, workflows, security boundaries and design decisions.
+
 
 ## 🤝 Contributing
 
