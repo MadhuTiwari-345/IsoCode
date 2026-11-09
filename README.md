@@ -31,16 +31,16 @@
 
 **Repository:** https://github.com/MadhuTiwari-345/IsoCode  
 **Production app:** https://isocode-homiq.vercel.app  
-**Last verified successful production build:** commit `306749bef0cb10e8af6d853999e7a3d360ef59a5a` (Vercel deployment `dpl_CSUdyrbEa1QossSmAzW7JnCdAW5g`, state `READY`).
+**Latest verified successful production build:** commit `bacae9472af748c5f4b1078e9907a66002058793` (Vercel deployment `dpl_7bwjaGRAsFAtNaYG4ebHrx9qVb97`, state `READY`). The GitHub Actions CI run for this commit completed successfully: unit tests, Payload type generation and TypeScript check all passed.
 
-The Vercel deployment history also contains failed and cancelled attempts. Those historical records remain visible by design; they do not overwrite the successful deployment. The most recent repository changes add reviewer-account provisioning and CI checks, so they still need their own CI result and production deployment before being treated as live.
+The Vercel deployment history also contains failed and cancelled attempts. Those historical records remain visible by design; they do not overwrite the successful deployment. The latest repository includes reviewer-account provisioning, CI checks, this README and the technical design document. Reviewer accounts and reminder secrets still require owner-supplied private setup.
 
 ### Honest completion checklist
 
 | Item | Current state |
 | --- | --- |
 | Buyer, executive and sales-head roles | Role model exists. A new secure provisioning script is available; reviewer accounts have **not** been created because unique reviewer emails and passwords must be supplied privately. |
-| Automated checks | CI workflow added for unit tests and TypeScript. Its first run is pending. |
+| Automated checks | Latest CI run passed: unit tests, Payload type generation and TypeScript check. |
 | Reminder schedule | GitHub Actions workflow is scheduled every five minutes. Repository secrets `HOMIQ_BASE_URL` and `CRON_SECRET` must be added by a repository administrator; the connected GitHub integration cannot write Actions secrets. No successful scheduled run is verified yet. |
 | Gemini key | Vercel has a `GEMINI_API_KEY` environment-variable entry. The key value is intentionally never displayed here. Confirm the rotated key is the value currently saved in Vercel, then redeploy. |
 | Sample data | Three brief leads exist in the database. The seed script supports those three and demo-only future slots. The separately supplied 18-row PDF is not fully imported. |
@@ -51,7 +51,7 @@ The Vercel deployment history also contains failed and cancelled attempts. Those
 
 The repository now includes `pnpm provision:reviewers`. It creates or resets three accounts in the Payload `users` collection: buyer, executive and head. It requires six private environment variables: `HOMIQ_REVIEWER_BUYER_EMAIL`, `HOMIQ_REVIEWER_BUYER_PASSWORD`, `HOMIQ_REVIEWER_EXECUTIVE_EMAIL`, `HOMIQ_REVIEWER_EXECUTIVE_PASSWORD`, `HOMIQ_REVIEWER_HEAD_EMAIL`, and `HOMIQ_REVIEWER_HEAD_PASSWORD`. Passwords must be at least 14 characters. Set them only in a private local environment connected to the intended database; do not commit them or paste them into chat. The script logs account emails and roles only, never passwords.
 
-See [deployment.md](deployment.md) for exact setup and reviewer instructions.
+See [deployment.md](deployment.md) for exact setup and reviewer instructions. The technical design is in [docs/Technical-Design-Document.md](docs/Technical-Design-Document.md).
 
 ---
 
